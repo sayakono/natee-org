@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Natee 組織図ツール</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#f2f1ed;--sur:#fff;--bor:#e2dfd7;--txt:#1a1815;--sub:#7a746d;
+  --acc:#e8521a;--acc-l:#fdf0eb;
+  --ny:#16a34a;--ny-l:#dcfce7;
+  --id:#2563eb;--id-l:#dbeafe;
+  --km:#7c3aed;--km-l:#ede9fe;
+  --kr:#b91c1c;--kr-l:#fef2f2;
+  --r:10px;--rs:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+
+/* HEADER */
+header{background:var(--sur);border-bottom:1px solid var(--bor);padding:0 14px;display:flex;align-items:center;height:50px;position:sticky;top:0;z-index:100;gap:7px;}
+.logo{font-size:14px;font-weight:900;white-space:nowrap;margin-right:4px;}.logo em{color:var(--acc);font-style:normal;}
+.tabs{display:flex;gap:2px;flex:1;}
+.tab{padding:5px 10px;border:none;background:transparent;border-radius:5px;font-size:11px;font-family:inherit;cursor:pointer;color:var(--sub);font-weight:600;transition:all .15s;white-space:nowrap;}
+.tab.on{background:var(--acc);color:#fff;}.tab:hover:not(.on){background:var(--bor);}
+.hbts{display:flex;gap:4px;}
+.btn{padding:5px 10px;border-radius:6px;font-size:11px;font-family:inherit;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap;}
+.btn-g{background:transparent;color:var(--sub);border:1px solid var(--bor);}.btn-g:hover{background:var(--bor);}
+.btn-p{background:var(--acc);color:#fff;}.btn-p:hover{background:#c94312;}
+.btn-warn{background:var(--kr-l);color:var(--kr);border:1px solid #fecaca;}.btn-warn:hover{background:var(--kr);color:#fff;}
+.btn-snap{background:#fef9c3;color:#854d0e;border:1px solid #fde68a;}.btn-snap:hover{background:#fde68a;}
+
+/* LAYOUT */
+main{display:flex;height:calc(100vh - 50px);}
+
+/* SIDEBAR */
+aside{width:230px;min-width:230px;background:var(--sur);border-right:1px solid var(--bor);display:flex;flex-direction:column;overflow:hidden;}
+.sb-hd{padding:10px;border-bottom:1px solid var(--bor);}
+.sb-label{font-size:9px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;}
+.sb-input{width:100%;padding:4px 7px;border:1.5px solid var(--bor);border-radius:5px;font-size:11px;font-family:inherit;outline:none;margin-bottom:7px;}
+.sb-input:focus{border-color:var(--acc);}
+.sb-div-label{font-size:9px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;margin-top:2px;}
+.gl{flex:1;overflow-y:auto;padding:5px;}
+.gi{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:var(--rs);cursor:pointer;transition:all .15s;margin-bottom:1px;border:1.5px solid transparent;}
+.gi:hover{background:var(--bg);}.gi.on{background:var(--acc-l);border-color:rgba(232,82,26,.25);}
+.gi-drag{font-size:14px;color:var(--bor);cursor:grab;flex-shrink:0;user-select:none;}.gi:hover .gi-drag{color:var(--sub);}
+.gi.drag-over{background:var(--acc-l);border-color:var(--acc);}
+.gi-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.gi-name{font-size:11px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gi-cnt{font-size:10px;color:var(--sub);font-family:'DM Mono',monospace;flex-shrink:0;}
+.gi-del{width:18px;height:18px;border-radius:4px;border:none;background:transparent;cursor:pointer;font-size:11px;color:transparent;padding:0;flex-shrink:0;transition:all .15s;}
+.gi:hover .gi-del{color:var(--sub);}.gi-del:hover{background:#fee2e2;color:#dc2626 !important;}
+.add-g-btn{width:100%;padding:7px;border:1.5px dashed var(--bor);border-radius:var(--rs);background:transparent;font-size:11px;color:var(--sub);cursor:pointer;font-family:inherit;transition:all .15s;margin-top:4px;}
+.add-g-btn:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-l);}
+
+/* EDITOR */
+.editor{flex:1;overflow-y:auto;padding:16px 20px;}
+.fw{margin-bottom:11px;}
+.fl{font-size:9px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.fi{width:100%;padding:6px 9px;border:1.5px solid var(--bor);border-radius:6px;font-size:13px;font-family:inherit;outline:none;background:#fff;transition:border-color .15s;}
+.fi:focus{border-color:var(--acc);}
+.fi.big{font-size:17px;font-weight:900;}
+.stat-bar{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap;}
+.stpill{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;background:var(--sur);border-radius:20px;padding:3px 8px;border:1.5px solid var(--bor);}
+
+/* チーム（section） */
+.sec{background:var(--sur);border:1.5px solid var(--bor);border-radius:var(--r);margin-bottom:10px;}
+.sec-hd{display:flex;align-items:center;gap:7px;padding:8px 11px;border-bottom:1.5px solid var(--bor);background:#fafaf8;border-radius:var(--r) var(--r) 0 0;}
+.sec-nw{flex:1;}
+.sec-nl{font-size:9px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+.sec-ni{width:100%;padding:4px 7px;border:1.5px solid var(--bor);border-radius:4px;font-size:12px;font-weight:700;font-family:inherit;outline:none;background:#fff;}
+.sec-ni:focus{border-color:var(--acc);}
+.sec-del{width:22px;height:22px;border-radius:4px;border:none;background:transparent;cursor:pointer;font-size:12px;color:var(--sub);flex-shrink:0;}
+.newtag-btn{padding:3px 8px;border-radius:4px;border:1.5px solid var(--bor);background:#fff;color:var(--sub);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .15s;}
+.newtag-btn.on{background:#ea580c;color:#fff;border-color:#ea580c;}
+.newtag-btn:hover:not(.on){background:#fff7ed;border-color:#ea580c;color:#ea580c;}
+.sec-del:hover{background:#fee2e2;color:#dc2626;}
+.sec-body{padding:10px 12px;}
+
+/* ユニット（unit） */
+.unit{background:#f8f7f3;border:1.5px solid var(--bor);border-radius:var(--rs);margin-bottom:8px;border-left:3px solid var(--acc);}
+.unit-hd{display:flex;align-items:center;gap:7px;padding:6px 10px;border-bottom:1px solid var(--bor);}
+.unit-nw{flex:1;}
+.unit-nl{font-size:8px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.unit-ni{width:100%;padding:3px 6px;border:1.5px solid var(--bor);border-radius:4px;font-size:11px;font-weight:700;font-family:inherit;outline:none;background:#fff;}
+.unit-ni:focus{border-color:var(--acc);}
+.unit-del{width:20px;height:20px;border-radius:4px;border:none;background:transparent;cursor:pointer;font-size:11px;color:var(--sub);flex-shrink:0;}
+.unit-del:hover{background:#fee2e2;color:#dc2626;}
+.unit-body{padding:8px 10px;}
+.add-unit-btn{width:100%;padding:5px;border:1.5px dashed var(--bor);border-radius:var(--rs);background:transparent;font-size:10px;color:var(--sub);cursor:pointer;font-family:inherit;transition:all .15s;margin-top:4px;}
+.add-unit-btn:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-l);}
+
+/* メンバー行 */
+.mlist{display:flex;flex-direction:column;gap:4px;margin-bottom:8px;}
+.mrow{display:flex;align-items:center;gap:5px;border:1.5px solid var(--bor);border-radius:6px;padding:5px 8px;flex-wrap:wrap;background:#fafaf8;transition:all .15s;}
+.mrow.ch-ny{border-color:var(--ny);background:var(--ny-l);}
+.mrow.ch-id{border-color:var(--id);background:var(--id-l);}
+.mrow.ch-km_add{border-color:var(--km);background:var(--km-l);}
+.mrow.ch-km_del{border-color:var(--kr);background:var(--kr-l);}
+.m-name-wrap{display:flex;align-items:center;gap:4px;min-width:72px;flex-shrink:0;}
+.m-name{font-size:12px;font-weight:700;}
+.m-drag{font-size:12px;color:var(--bor);cursor:grab;flex-shrink:0;user-select:none;}
+.mrow:hover .m-drag{color:var(--sub);}
+.mrow.dragging{opacity:.4;}
+.drop-target{background:var(--acc-l) !important;outline:2px dashed var(--acc);outline-offset:-2px;}
+.km-badge{font-size:9px;font-weight:700;background:var(--km);color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap;}
+.km-toggle{padding:2px 6px;border-radius:4px;border:1.5px solid var(--bor);background:#fff;color:var(--sub);font-size:9px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .15s;}
+.km-toggle.on{background:var(--km);color:#fff;border-color:var(--km);}
+.km-toggle:hover:not(.on){border-color:var(--km);color:var(--km);}
+.role-grp{display:flex;gap:3px;flex-wrap:wrap;flex:1;}
+.rc{padding:2px 5px;border-radius:4px;border:1.5px solid var(--bor);font-size:9px;font-weight:700;cursor:pointer;background:#fff;color:var(--sub);transition:all .15s;font-family:inherit;}
+.rc.on-bucho{background:#1a1815;color:#fff;border-color:#1a1815;}
+.rc.on-mgr{background:#0f766e;color:#fff;border-color:#0f766e;}
+.rc.on-leader{background:#0891b2;color:#fff;border-color:#0891b2;}
+.rc.on-member{background:#94a3b8;color:#fff;border-color:#94a3b8;}
+.rc.on-gyomu{background:#d97706;color:#fff;border-color:#d97706;}
+.ch-grp{display:flex;gap:3px;flex-shrink:0;}
+.cc{padding:2px 5px;border-radius:4px;border:1.5px solid var(--bor);font-size:9px;font-weight:700;cursor:pointer;background:#fff;color:var(--sub);transition:all .15s;font-family:inherit;}
+.cc.on-ny{background:var(--ny);color:#fff;border-color:var(--ny);}
+.cc.on-id{background:var(--id);color:#fff;border-color:var(--id);}
+.cc.on-km_add{background:var(--km);color:#fff;border-color:var(--km);}
+.cc.on-km_del{background:var(--kr);color:#fff;border-color:var(--kr);}
+.m-del{width:16px;height:16px;border-radius:50%;border:none;background:rgba(0,0,0,.08);cursor:pointer;font-size:9px;color:var(--sub);flex-shrink:0;padding:0;}
+.m-del:hover{background:#fca5a5;color:#991b1b;}
+
+/* メンバー追加エリア */
+.add-area{background:var(--bg);border-radius:var(--rs);border:2px dashed var(--bor);padding:8px 10px;}
+.add-area-lbl{font-size:9px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.add-row{display:flex;gap:5px;align-items:flex-end;flex-wrap:wrap;}
+.af{display:flex;flex-direction:column;gap:2px;}
+.af-lbl{font-size:9px;font-weight:600;color:var(--sub);}
+.af input,.af select{padding:5px 7px;border:1.5px solid var(--bor);border-radius:5px;font-size:11px;font-family:inherit;outline:none;background:#fff;}
+.af input{width:100px;}.af input:focus,.af select:focus{border-color:var(--acc);}
+.master-dropdown{position:absolute;z-index:200;background:#fff;border:1.5px solid var(--bor);border-radius:7px;max-height:200px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:160px;}
+.master-item{padding:7px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--bor);}
+.master-item:last-child{border-bottom:none;}.master-item:hover{background:var(--acc-l);color:var(--acc);}
+.master-item em{font-style:normal;color:var(--sub);font-size:10px;margin-left:5px;}
+.add-sub{align-self:flex-end;padding:5px 11px;border-radius:5px;border:none;background:var(--acc);color:#fff;font-size:11px;font-family:inherit;font-weight:700;cursor:pointer;}
+
+/* TREE */
+.tree-panel{flex:1;overflow:auto;padding:20px 28px;background:var(--bg);}
+.tlg{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.tl{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub);}
+.tldot{width:7px;height:7px;border-radius:50%;}
+.t-root-node{display:inline-flex;flex-direction:column;gap:3px;margin-bottom:16px;}
+.t-company{display:inline-block;background:var(--txt);color:#fff;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:900;}
+.t-division{display:inline-block;background:#334155;color:#fff;border-radius:6px;padding:5px 14px;font-size:11px;font-weight:700;}
+/* 部門 */
+.t-tree-wrap{display:flex;flex-direction:column;border-left:2px solid var(--bor);margin-left:24px;padding:6px 0 2px;gap:0;}
+.t-div-row{display:flex;align-items:flex-start;margin-bottom:10px;}
+.t-div-hline{width:22px;height:2px;margin-top:17px;flex-shrink:0;}
+.t-div-box{border:2px solid;border-radius:8px;padding:7px 12px;min-width:160px;}
+.t-div-name{font-size:12px;font-weight:900;}
+.t-div-sub{font-size:9px;color:var(--sub);margin-top:1px;}
+/* チーム */
+.t-sec-wrap{display:flex;flex-direction:column;border-left:2px solid var(--bor);margin-left:10px;margin-top:6px;padding:3px 0;gap:0;}
+.t-sec-row{display:flex;align-items:flex-start;margin-bottom:5px;}
+.t-sec-hline{width:16px;height:2px;margin-top:15px;flex-shrink:0;}
+.t-sec-box{border:1.5px solid var(--bor);border-radius:6px;padding:6px 10px;background:var(--sur);min-width:130px;max-width:240px;}
+.t-sec-name{font-size:11px;font-weight:800;margin-bottom:3px;}
+/* ユニット */
+.t-unit-wrap{display:flex;flex-direction:column;border-left:2px solid var(--bor);margin-left:10px;margin-top:4px;padding:2px 0;gap:0;}
+.t-unit-row{display:flex;align-items:flex-start;margin-bottom:4px;}
+.t-unit-hline{width:12px;height:2px;margin-top:13px;flex-shrink:0;}
+.t-unit-box{border:1.5px solid var(--bor);border-radius:5px;padding:5px 9px;background:#fafaf8;min-width:120px;max-width:230px;}
+.t-unit-name{font-size:10px;font-weight:700;color:var(--acc);margin-bottom:3px;}
+/* メンバー表示 */
+.t-members{font-size:10px;line-height:1.85;color:var(--sub);}
+.tm{display:inline;}.tm+.tm::before{content:'・';}
+.tm.ny{color:var(--ny);font-weight:700;}.tm.id{color:var(--id);font-weight:600;}
+.tm.km_add{color:var(--km);font-weight:700;}.tm.km_del{color:var(--kr);}
+.rb{font-size:7px;font-weight:700;padding:1px 3px;border-radius:2px;color:#fff;vertical-align:middle;margin-right:2px;display:inline-block;}
+.rb-bucho{background:#1a1815;}.rb-mgr{background:#0f766e;}.rb-leader{background:#0891b2;}.rb-gyomu{background:#d97706;}
+.t-km{font-size:7px;font-weight:700;background:var(--km);color:#fff;border-radius:2px;padding:0 2px;vertical-align:middle;margin-left:1px;}
+
+/* SLIDE */
+.sl-outer{flex:1;overflow:auto;background:#c8c5bc;padding:18px;}
+.sl-nav{display:flex;gap:6px;margin-bottom:12px;align-items:center;flex-wrap:wrap;}
+.sl-nav-lbl{font-size:11px;font-weight:700;color:#555;white-space:nowrap;}
+.stabs{display:flex;gap:3px;flex-wrap:wrap;}
+.stab{padding:4px 9px;border:1.5px solid #aaa;border-radius:5px;font-size:10px;font-family:inherit;cursor:pointer;background:#fff;color:var(--sub);font-weight:600;transition:all .15s;}
+.stab.on{background:var(--acc);color:#fff;border-color:var(--acc);}
+.sldv{width:960px;min-height:540px;background:#fff;border-radius:6px;box-shadow:0 6px 28px rgba(0,0,0,.22);position:relative;overflow:hidden;display:none;}
+.sldv.on{display:block;}
+.sl-bar{position:absolute;top:0;left:0;width:100%;height:7px;}
+.sl-p{padding:28px 36px;}
+.sl-ey{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px;}
+.sl-h1{font-size:28px;font-weight:900;line-height:1.1;margin-bottom:3px;}
+.sl-meta{font-size:11px;color:var(--sub);margin-bottom:16px;display:flex;gap:11px;flex-wrap:wrap;align-items:center;}
+.sl-meta-chip{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;}
+/* スライドのチーム行 */
+.sl-ll{display:grid;gap:5px;}
+.sl-team-block{margin-bottom:7px;}
+.sl-team-label{font-size:11px;font-weight:900;color:var(--acc);margin-bottom:3px;padding-left:4px;border-left:3px solid var(--acc);}
+.sl-lrow{display:grid;grid-template-columns:90px 1fr;border-radius:4px;overflow:hidden;border:1.5px solid #eee;margin-bottom:3px;}
+.sl-ltag{color:#fff;font-size:11px;font-weight:700;padding:6px 8px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.3;}
+.sl-lnames{padding:5px 9px;font-size:11px;line-height:2;background:#fafaf8;}
+/* チーム直属メンバー（ユニットなし）行 */
+.sl-team-row{display:grid;grid-template-columns:90px 1fr;border-radius:4px;overflow:hidden;border:1.5px solid #eee;margin-bottom:3px;}
+.sl-team-tag{font-size:11px;font-weight:700;padding:6px 8px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.3;color:#fff;}
+.slm{display:inline;}.slm+.slm::before{content:'　'}
+.slm.ny{color:var(--ny);font-weight:700;}.slm.id{color:var(--id);font-weight:600;}
+.slm.km_add{color:var(--km);font-weight:700;}.slm.km_del{color:var(--kr);}
+.slrb{font-size:8px;font-weight:700;padding:0 3px;border-radius:2px;color:#fff;vertical-align:middle;margin-right:2px;}
+.slrb-bucho{background:#1a1815;}.slrb-mgr{background:#0f766e;}.slrb-leader{background:#0891b2;}.slrb-gyomu{background:#d97706;}
+.sl-km-mark{font-size:7px;font-weight:700;background:var(--km);color:#fff;border-radius:2px;padding:0 2px;vertical-align:middle;margin-left:1px;}
+.sl-leg{position:absolute;bottom:12px;right:28px;display:flex;gap:10px;font-size:8px;color:var(--sub);}
+.sll{display:flex;align-items:center;gap:3px;}.slld{width:6px;height:6px;border-radius:50%;}
+
+/* 発令案 */
+.hp{flex:1;overflow-y:auto;padding:16px 20px;}
+.hn{background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:8px 12px;font-size:11px;color:#92400e;line-height:1.6;margin-bottom:14px;}
+.hs{margin-bottom:22px;}
+.hsh{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.hb{padding:4px 9px;border-radius:5px;font-size:11px;font-weight:700;}
+.hb.ny{background:var(--ny-l);color:var(--ny);}.hb.id{background:var(--id-l);color:var(--id);}
+.hb.km{background:var(--km-l);color:var(--km);}.hb.kr{background:var(--kr-l);color:var(--kr);}
+.cab{padding:4px 9px;border-radius:5px;border:1px solid var(--bor);background:#fff;font-size:11px;font-family:inherit;cursor:pointer;}
+.cab:hover{background:var(--acc);color:#fff;border-color:var(--acc);}
+table.ht{width:100%;border-collapse:collapse;font-size:11px;}
+table.ht th{background:#f0ede7;padding:5px 7px;text-align:left;font-size:10px;font-weight:700;color:var(--sub);border:1px solid var(--bor);white-space:nowrap;}
+table.ht td{padding:5px 7px;border:1px solid var(--bor);background:#fff;}
+table.ht tr:hover td{background:#fafaf8;}
+.cr{padding:2px 6px;border:1px solid var(--bor);border-radius:3px;background:#fff;font-size:10px;cursor:pointer;font-family:inherit;}
+.cr:hover{background:var(--acc);color:#fff;border-color:var(--acc);}
+.emp{font-size:12px;color:var(--sub);padding:7px 0;}
+
+/* マスタ */
+.master-panel{flex:1;overflow-y:auto;padding:16px 20px;}
+.master-search{display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap;}
+.master-search input{padding:7px 11px;border:1.5px solid var(--bor);border-radius:7px;font-size:12px;font-family:inherit;outline:none;width:220px;}
+.master-search input:focus{border-color:var(--acc);}
+.master-table{width:100%;border-collapse:collapse;font-size:12px;}
+.master-table th{background:#f0ede7;padding:6px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--sub);border:1px solid var(--bor);white-space:nowrap;}
+.master-table td{padding:6px 10px;border:1px solid var(--bor);background:#fff;vertical-align:middle;}
+.master-table tr:hover td{background:#fafaf8;}
+.master-table input{width:100%;border:1px solid transparent;background:transparent;font-size:12px;font-family:inherit;outline:none;padding:2px 4px;border-radius:3px;}
+.master-table input:focus{border-color:var(--acc);background:#fff;}
+.master-table select{width:100%;border:1px solid transparent;background:transparent;font-size:11px;font-family:inherit;outline:none;cursor:pointer;}
+.master-table select:focus{border-color:var(--acc);background:#fff;}
+.m-del-row{width:22px;height:22px;border-radius:4px;border:none;background:transparent;cursor:pointer;font-size:11px;color:var(--sub);}
+.m-del-row:hover{background:#fee2e2;color:#dc2626;}
+
+/* MODAL */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.ov.on{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:var(--r);padding:20px;width:360px;max-width:92vw;box-shadow:0 12px 40px rgba(0,0,0,.18);transform:translateY(8px);transition:transform .2s;}
+.ov.on .modal{transform:translateY(0);}
+.modal h3{font-size:14px;font-weight:700;margin-bottom:11px;}
+.mf{margin-bottom:9px;}.mf label{display:block;font-size:9px;font-weight:700;color:var(--sub);margin-bottom:3px;text-transform:uppercase;letter-spacing:.07em;}
+.mf input,.mf select{width:100%;padding:7px 9px;border:1.5px solid var(--bor);border-radius:6px;font-size:13px;font-family:inherit;outline:none;}
+.mf input:focus,.mf select:focus{border-color:var(--acc);}
+.m-acts{display:flex;gap:5px;justify-content:flex-end;margin-top:12px;}
+.toast{position:fixed;bottom:14px;right:14px;background:var(--txt);color:#fff;padding:8px 14px;border-radius:7px;font-size:12px;font-weight:500;z-index:400;transform:translateY(34px);opacity:0;transition:all .25s;}
+.toast.on{transform:translateY(0);opacity:1;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://unpkg.com/pptxgenjs@3.12.0/dist/pptxgen.bundle.js';document.head.appendChild(s);"></script>
+</head>
+<body>
+<header>
+  <div class="logo">Natee <em>組織図</em></div>
+  <div class="tabs">
+    <button class="tab on" onclick="sw('edit')">✏️ 編集</button>
+    <button class="tab" onclick="sw('tree')">🌲 組織図（ツリー）</button>
+    <button class="tab" onclick="sw('slide')">🖼 スライド</button>
+    <button class="tab" onclick="sw('harel')">📋 発令案</button>
+    <button class="tab" onclick="sw('master')">👥 マスタ</button>
+  </div>
+  <div class="hbts">
+    <button class="btn btn-warn" onclick="clearChanges()">🔄 月次リセット</button>
+    <button class="btn btn-g" onclick="exportD()">💾 保存</button>
+    <button class="btn btn-g" onclick="document.getElementById('fi').click()">📂 読込</button>
+  </div>
+</header>
+<div id="archiveBar" style="background:#fff;border-bottom:1px solid var(--bor);padding:7px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+  <span style="font-size:11px;font-weight:700;color:var(--sub);white-space:nowrap;">📅 対象月：</span>
+  <select id="archiveSelect" onchange="switchArchive(parseInt(this.value))" style="padding:5px 10px;border:1.5px solid var(--acc);border-radius:6px;font-size:12px;font-family:inherit;font-weight:700;color:var(--acc);background:#fff;cursor:pointer;outline:none;"></select>
+  <button class="btn btn-g" style="font-size:10px;white-space:nowrap;" onclick="newArchiveFromCurrent()">＋ 今の月をコピーして新規</button>
+  <button class="btn btn-g" style="font-size:10px;white-space:nowrap;" onclick="renameArchive()">✏️ 月名変更</button>
+  <button class="btn btn-g" style="font-size:10px;white-space:nowrap;" onclick="deleteArchive(curArchive)">🗑 この月を削除</button>
+  <span style="font-size:9px;color:#16a34a;white-space:nowrap;margin-left:auto;">💾 自動保存ON</span>
+</div>
+<main>
+  <div id="editMode" style="display:flex;flex:1;overflow:hidden;">
+    <aside>
+      <div class="sb-hd">
+        <div class="sb-label">会社名</div>
+        <input class="sb-input" id="companyNameInput" value="株式会社Natee" onchange="D.companyName=this.value">
+        <div class="sb-label">事業本部名</div>
+        <input class="sb-input" id="divisionNameInput" value="SNSマーケティング事業本部" onchange="D.divisionName=this.value">
+        <div class="sb-div-label">部門一覧 <span style="font-weight:400;font-size:8px;color:#aaa;">（ドラッグで並替）</span></div>
+        <button class="btn btn-p" style="width:100%;font-size:11px;" onclick="openAddG()">＋ 部門追加</button>
+      </div>
+      <div class="gl" id="gList"></div>
+    </aside>
+    <div class="editor" id="editor"></div>
+  </div>
+  <div id="treeMode" style="display:none;flex:1;overflow:hidden;"><div class="tree-panel" id="treePanel"></div></div>
+  <div id="slideMode" style="display:none;flex:1;overflow:hidden;"><div class="sl-outer" id="slOuter"></div></div>
+  <div id="harelMode" style="display:none;flex:1;overflow:hidden;"><div class="hp" id="harelPanel"></div></div>
+  <div id="masterMode" style="display:none;flex:1;overflow:hidden;"><div class="master-panel" id="masterPanel"></div></div>
+</main>
+
+<div class="ov" id="addGModal">
+  <div class="modal">
+    <h3>部門を追加</h3>
+    <div class="mf"><label>部門名</label><input id="ngN" placeholder="例: Brand Partner Division1"></div>
+    <div class="mf"><label>メモ（部長名など）</label><input id="ngS" placeholder="例: 部長 大塚宥吾"></div>
+    <div class="m-acts"><button class="btn btn-g" onclick="closeM()">キャンセル</button><button class="btn btn-p" onclick="addG()">追加</button></div>
+  </div>
+</div>
+<input type="file" id="fi" accept=".json" style="display:none" onchange="loadF(event)">
+<div class="toast" id="toast"></div>
+
+<script>
+/*
+  データ構造（3階層）:
+  D.groups[] = 部門/Division
+    .sections[] = チーム (Team)
+      .members[] = チーム直属メンバー（ユニットなし）
+      .units[] = ユニット (Unit)
+        .members[] = ユニットメンバー
+
+  メンバー: { n, r, km, ch }
+  チームにunitsがある場合はunits経由、ない場合はsection.membersに直属
+*/
+
+// 役職・変更区分はカスタマイズ可能（Dに保存）。初期値はデフォルト。
+let ROLES_DEF=[
+  {k:'bucho', l:'部長'},{k:'mgr',l:'MGR'},{k:'leader',l:'リーダー'},
+  {k:'member',l:'メンバー'},{k:'gyomu',l:'業務委託'},
+];
+let ROLE_ORDER=['bucho','mgr','leader','member','gyomu'];
+let CH_DEF=[
+  {k:'ny',l:'入社'},{k:'id',l:'異動'},
+];
+// 役職バッジの色（キー→hex）。未定義はグレー
+let ROLE_COLORS={bucho:'1A1815',mgr:'0F766E',leader:'0891B2',member:'94A3B8',gyomu:'D97706'};
+// 変更区分の色
+let CH_COLORS={ny:'16A34A',id:'2563EB'};
+function syncDefsToD(){ D.rolesDef=ROLES_DEF; D.roleOrder=ROLE_ORDER; D.chDef=CH_DEF; D.roleColors=ROLE_COLORS; D.chColors=CH_COLORS; }
+function loadDefsFromD(){
+  if(D.rolesDef)ROLES_DEF=D.rolesDef;
+  if(D.roleOrder)ROLE_ORDER=D.roleOrder;
+  if(D.chDef)CH_DEF=D.chDef;
+  if(D.roleColors)ROLE_COLORS=D.roleColors;
+  if(D.chColors)CH_COLORS=D.chColors;
+}
+const GC=['E8521A','2563EB','16A34A','9333EA','0891B2','CA8A04','DC2626','0D9488'];
+const gc=i=>'#'+GC[i%GC.length];
+const uid=()=>'_'+Math.random().toString(36).slice(2,8);
+const rl=r=>r.split(',').map(k=>ROLES_DEF.find(x=>x.k===k)?.l||k).join('/');
+
+// メンバーをロール順にソート
+function rolesSorted(members){
+  return [...members].sort((a,b)=>ROLE_ORDER.indexOf(a.r.split(',')[0])-ROLE_ORDER.indexOf(b.r.split(',')[0]));
+}
+// 部門配下の全メンバーを返す
+function allMembers(g){
+  return g.sections.flatMap(s=>[...s.members,...s.units.flatMap(u=>u.members)]);
+}
+// チーム配下の全メンバー
+function secAllMembers(s){
+  return [...s.members,...s.units.flatMap(u=>u.members)];
+}
+
+// ── DATA ──
+let D={
+  companyName:'株式会社Natee',
+  divisionName:'SNSマーケティング事業本部',
+  snapshot:null,
+  snapshotDate:null,
+  master:[
+    {id:'m1',name:'大塚宥吾',dept:'Produce Division1',defaultRole:'bucho'},
+    {id:'m2',name:'山田大輔',dept:'Brand Partner Division1',defaultRole:'mgr'},
+    {id:'m3',name:'田中真愛',dept:'Brand Partner Division1',defaultRole:'leader'},
+    {id:'m4',name:'小泉花夏',dept:'Brand Partner Division1',defaultRole:'member'},
+    {id:'m5',name:'平川咲乃',dept:'Brand Partner Division1',defaultRole:'member'},
+    {id:'m6',name:'高倉仁美',dept:'Brand Partner Division1',defaultRole:'member'},
+    {id:'m7',name:'小山田千夏',dept:'Brand Partner Division1',defaultRole:'member'},
+    {id:'m8',name:'武井耀一郎',dept:'Brand Partner Division1',defaultRole:'member'},
+    {id:'m9',name:'阿部紫音',dept:'Brand Partner Division1',defaultRole:'member'},
+    {id:'m10',name:'豊田泰三',dept:'Brand Partner Division1',defaultRole:'bucho'},
+    {id:'m11',name:'圓谷将祐',dept:'Brand Partner Division1',defaultRole:'leader'},
+    {id:'m12',name:'村瀬雅斗',dept:'Brand Partner Division1',defaultRole:'member'},
+    {id:'m13',name:'杉原飛宇',dept:'Brand Partner Division1',defaultRole:'member'},
+    {id:'m14',name:'佐藤星南',dept:'Brand Partner Division1',defaultRole:'member'},
+    {id:'m15',name:'米田光来',dept:'Brand Partner Division1',defaultRole:'member'},
+    {id:'m16',name:'大江祐介',dept:'役員室',defaultRole:'bucho'},
+    {id:'m17',name:'石原佳奈',dept:'事業支援部',defaultRole:'leader'},
+    {id:'m18',name:'玉石恵子',dept:'事業支援部',defaultRole:'member'},
+    {id:'m19',name:'浅沼友梨香',dept:'事業支援部',defaultRole:'member'},
+    {id:'m20',name:'西原実紀',dept:'コーポレート本部',defaultRole:'gyomu'},
+    {id:'m21',name:'服部未来',dept:'事業支援部',defaultRole:'leader'},
+    {id:'m22',name:'宮里章太',dept:'事業支援部',defaultRole:'mgr'},
+    {id:'m23',name:'渡邉裕史',dept:'事業支援部',defaultRole:'member'},
+    {id:'m24',name:'中坊孝司',dept:'事業支援部',defaultRole:'member'},
+    {id:'m25',name:'吉野芙士',dept:'Produce Division1',defaultRole:'leader'},
+    {id:'m26',name:'下岸暖',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m27',name:'飯井侑果',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m28',name:'藤田純',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m29',name:'今村汐里',dept:'Produce Division1',defaultRole:'leader'},
+    {id:'m30',name:'山田芙紗子',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m31',name:'若杉泰星',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m32',name:'鈴木志穂',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m33',name:'大岡千伽子',dept:'Produce Division1',defaultRole:'leader'},
+    {id:'m34',name:'小木雅恵',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m35',name:'只松ゆい',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m36',name:'近藤愛',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m37',name:'清水彩',dept:'Produce Division1',defaultRole:'leader'},
+    {id:'m38',name:'中島詩織',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m39',name:'鶴見実和',dept:'Produce Division1',defaultRole:'gyomu'},
+    {id:'m40',name:'斎藤歩人',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m41',name:'岡本空',dept:'Produce Division1',defaultRole:'leader'},
+    {id:'m42',name:'倉本夢',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m43',name:'湯田紗千',dept:'Produce Division1',defaultRole:'member'},
+    {id:'m44',name:'久良木理沙',dept:'Produce Division2',defaultRole:'bucho'},
+    {id:'m45',name:'渡邉夏凜',dept:'Produce Division2',defaultRole:'leader'},
+    {id:'m46',name:'永嶋菜花',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m47',name:'前野珠生',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m48',name:'上西真悠子',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m49',name:'小柳夏生',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m50',name:'猪俣唯',dept:'Produce Division2',defaultRole:'leader'},
+    {id:'m51',name:'稲葉慧',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m52',name:'通崎日和',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m53',name:'深谷奈央',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m54',name:'曽我公則',dept:'Produce Division2',defaultRole:'leader'},
+    {id:'m55',name:'大和希里',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m56',name:'長島悠華',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m57',name:'朴成倫',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m58',name:'荒谷朋美',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m59',name:'堀岡千夏',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m60',name:'成田千夏',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m61',name:'吉田知生',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m62',name:'日野伸太郎',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m63',name:'小網優',dept:'Produce Division2',defaultRole:'member'},
+    {id:'m64',name:'白石洲人',dept:'コーポレート本部',defaultRole:'bucho'},
+    {id:'m65',name:'桐田萌',dept:'コーポレート本部',defaultRole:'member'},
+    {id:'m66',name:'檜垣英里',dept:'コーポレート本部',defaultRole:'member'},
+    {id:'m67',name:'澁谷海斗',dept:'コーポレート本部',defaultRole:'member'},
+    {id:'m68',name:'髙木恵美',dept:'コーポレート本部',defaultRole:'member'},
+    {id:'m69',name:'西林翔太',dept:'HR本部',defaultRole:'bucho'},
+    {id:'m70',name:'河野爽',dept:'HR本部',defaultRole:'member'},
+    {id:'m71',name:'薫乃',dept:'HR本部',defaultRole:'gyomu'},
+    {id:'m72',name:'中島可那子',dept:'HR本部',defaultRole:'leader'},
+    {id:'m73',name:'佐藤佳奈',dept:'HR本部',defaultRole:'member'},
+    {id:'m74',name:'小島領剣',dept:'役員室',defaultRole:'member'},
+    {id:'m75',name:'石倉壱彦',dept:'役員室',defaultRole:'member'},
+    {id:'m76',name:'渡部真実',dept:'育休・産休・休職',defaultRole:'member'},
+    {id:'m77',name:'田部井りお香',dept:'育休・産休・休職',defaultRole:'member'},
+  ],
+  groups:[
+  // Brand Partner Division1: チームのみ（ユニットなし）
+  {id:'g1',name:'Brand Partner Division1',sub:'部長 大塚宥吾',sections:[
+    {id:'s1a',name:'Enterprise Team',members:[
+      {n:'大塚宥吾',r:'bucho',km:false,ch:''},{n:'山田大輔',r:'mgr',km:false,ch:''},{n:'田中真愛',r:'leader',km:false,ch:''},
+      {n:'小泉花夏',r:'member',km:false,ch:''},{n:'平川咲乃',r:'member',km:false,ch:''},
+      {n:'高倉仁美',r:'member',km:false,ch:''},{n:'小山田千夏',r:'member',km:false,ch:''},
+      {n:'武井耀一郎',r:'member',km:false,ch:''},{n:'阿部紫音',r:'member',km:false,ch:''},
+    ],units:[]},
+    {id:'s1b',name:'Growth Team',members:[
+      {n:'豊田泰三',r:'bucho',km:true,ch:''},{n:'圓谷将祐',r:'leader',km:false,ch:''},
+      {n:'村瀬雅斗',r:'member',km:false,ch:''},{n:'杉原飛宇',r:'member',km:false,ch:''},
+      {n:'佐藤星南',r:'member',km:false,ch:''},{n:'米田光来',r:'member',km:false,ch:''},
+    ],units:[]},
+    {id:'s1c',name:'Solution Team',members:[],units:[]},
+  ]},
+  // 事業支援部: チームのみ
+  {id:'g2',name:'事業支援部',sub:'部長 大江祐介（兼務）',sections:[
+    {id:'s2a',name:'Sales Assistant Team',members:[
+      {n:'大江祐介',r:'bucho',km:true,ch:''},{n:'石原佳奈',r:'leader',km:false,ch:''},
+      {n:'玉石恵子',r:'member',km:false,ch:''},{n:'浅沼友梨香',r:'member',km:false,ch:''},
+      {n:'西原実紀',r:'gyomu',km:true,ch:''},
+    ],units:[]},
+    {id:'s2b',name:'Creator Success Team',members:[{n:'服部未来',r:'leader',km:false,ch:''}],units:[]},
+    {id:'s2c',name:'Development Team',members:[
+      {n:'宮里章太',r:'mgr',km:false,ch:''},{n:'渡邉裕史',r:'member',km:false,ch:''},{n:'中坊孝司',r:'member',km:false,ch:''},
+    ],units:[]},
+  ]},
+  // Produce Division1: Produce Teamの下にUnit1〜5
+  {id:'g3',name:'Produce Division1',sub:'部長 大塚宥吾（兼務）',sections:[
+    {id:'s3a',name:'Produce Team',members:[{n:'大塚宥吾',r:'bucho,mgr',km:true,ch:''}],units:[
+      {id:'u3b',name:'Unit1',members:[
+        {n:'吉野芙士',r:'leader',km:false,ch:''},{n:'下岸暖',r:'member',km:false,ch:''},{n:'飯井侑果',r:'member',km:false,ch:''},{n:'藤田純',r:'member',km:false,ch:''},
+      ]},
+      {id:'u3c',name:'Unit2',members:[
+        {n:'今村汐里',r:'leader',km:false,ch:''},{n:'山田芙紗子',r:'member',km:false,ch:''},{n:'若杉泰星',r:'member',km:false,ch:''},{n:'鈴木志穂',r:'member',km:false,ch:''},
+      ]},
+      {id:'u3d',name:'Unit3',members:[
+        {n:'大岡千伽子',r:'leader',km:false,ch:''},{n:'小木雅恵',r:'member',km:false,ch:''},{n:'只松ゆい',r:'member',km:false,ch:''},{n:'近藤愛',r:'member',km:false,ch:''},
+      ]},
+      {id:'u3e',name:'Unit4',members:[
+        {n:'清水彩',r:'leader',km:false,ch:''},{n:'中島詩織',r:'member',km:false,ch:''},{n:'鶴見実和',r:'gyomu',km:false,ch:''},{n:'斎藤歩人',r:'member',km:false,ch:''},
+      ]},
+      {id:'u3f',name:'Unit5',members:[
+        {n:'岡本空',r:'leader',km:false,ch:''},{n:'倉本夢',r:'member',km:false,ch:''},{n:'湯田紗千',r:'member',km:false,ch:''},
+      ]},
+    ]},
+  ]},
+  // Produce Division2: Produce Teamの下にUnit A〜E
+  {id:'g4',name:'Produce Division2',sub:'部長 久良木理沙',sections:[
+    {id:'s4a',name:'Produce Team',members:[{n:'久良木理沙',r:'bucho,mgr',km:true,ch:''}],units:[
+      {id:'u4b',name:'Unit A',members:[
+        {n:'渡邉夏凜',r:'leader',km:false,ch:''},{n:'永嶋菜花',r:'member',km:false,ch:''},{n:'前野珠生',r:'member',km:false,ch:''},{n:'上西真悠子',r:'member',km:false,ch:''},{n:'小柳夏生',r:'member',km:false,ch:''},
+      ]},
+      {id:'u4c',name:'Unit B',members:[
+        {n:'猪俣唯',r:'leader',km:false,ch:''},{n:'稲葉慧',r:'member',km:false,ch:''},{n:'通崎日和',r:'member',km:false,ch:''},{n:'深谷奈央',r:'member',km:false,ch:''},
+      ]},
+      {id:'u4d',name:'Unit C',members:[
+        {n:'曽我公則',r:'leader',km:false,ch:''},{n:'大和希里',r:'member',km:false,ch:''},{n:'長島悠華',r:'member',km:false,ch:''},{n:'朴成倫',r:'member',km:false,ch:''},
+      ]},
+      {id:'u4e',name:'Unit D',members:[
+        {n:'久良木理沙',r:'leader',km:true,ch:''},{n:'荒谷朋美',r:'member',km:false,ch:''},{n:'堀岡千夏',r:'member',km:false,ch:''},{n:'成田千夏',r:'member',km:false,ch:''},{n:'吉田知生',r:'member',km:false,ch:''},
+      ]},
+      {id:'u4f',name:'Unit E',members:[
+        {n:'豊田泰三',r:'leader',km:true,ch:''},{n:'日野伸太郎',r:'member',km:false,ch:''},{n:'小網優',r:'member',km:false,ch:''},
+      ]},
+    ]},
+  ]},
+  {id:'g5',name:'社長室',sub:'室長 大江祐介',sections:[
+    {id:'s5a',name:'Growth Strategy Office',members:[
+      {n:'大江祐介',r:'bucho',km:true,ch:''},{n:'豊田泰三',r:'member',km:true,ch:''},{n:'久良木理沙',r:'member',km:true,ch:''},
+    ],units:[]},
+    {id:'s5b',name:'Marketing Office',members:[
+      {n:'荒谷朋美',r:'member',km:false,ch:''},{n:'堀岡千夏',r:'member',km:false,ch:''},{n:'成田千夏',r:'member',km:false,ch:''},{n:'吉田知生',r:'member',km:false,ch:''},
+    ],units:[]},
+  ]},
+  {id:'g6',name:'コーポレート本部',sub:'本部長 白石洲人',sections:[
+    {id:'s6a',name:'経営管理部',members:[
+      {n:'白石洲人',r:'bucho',km:false,ch:''},{n:'桐田萌',r:'member',km:false,ch:''},{n:'檜垣英里',r:'member',km:false,ch:''},
+      {n:'澁谷海斗',r:'member',km:false,ch:''},{n:'髙木恵美',r:'member',km:false,ch:''},{n:'西原実紀',r:'gyomu',km:true,ch:''},
+    ],units:[]},
+  ]},
+  {id:'g7',name:'HR本部',sub:'本部長 西林翔太（兼務）',sections:[
+    {id:'s7a',name:'人事総務部',members:[
+      {n:'西林翔太',r:'bucho',km:true,ch:''},{n:'河野爽',r:'member',km:false,ch:''},{n:'薫乃',r:'gyomu',km:false,ch:''},
+    ],units:[]},
+    {id:'s7b',name:'広報部',members:[
+      {n:'西林翔太',r:'bucho',km:true,ch:''},{n:'中島可那子',r:'leader',km:false,ch:''},{n:'佐藤佳奈',r:'member',km:false,ch:''},
+    ],units:[]},
+  ]},
+  {id:'g8',name:'役員室',sub:'',sections:[
+    {id:'s8a',name:'役員',members:[
+      {n:'大江祐介',r:'bucho',km:false,ch:''},{n:'西林翔太',r:'member',km:false,ch:''},{n:'小島領剣',r:'member',km:false,ch:''},{n:'石倉壱彦',r:'member',km:false,ch:''},
+    ],units:[]},
+  ]},
+  {id:'g9',name:'育休・産休・休職',sub:'',sections:[
+    {id:'s9a',name:'休業中',members:[
+      {n:'渡部真実',r:'member',km:false,ch:''},{n:'田部井りお香',r:'member',km:false,ch:''},
+    ],units:[]},
+  ]},
+]};
+
+// ── アーカイブ構造 ──
+// 各月: { label, snapshot, snapshotDate, companyName, divisionName, master, groups }
+// Dは「現在表示中の月」のデータを指す
+let ARCHIVES = [];
+let curArchive = 0;
+
+// 初期データDを最初のアーカイブとして登録
+const LS_KEY = 'natee_org_data_v1';
+let autosaveReady = false; // 起動シーケンス完了までは自動保存しない（誤上書き防止）
+let lastSaveOk = true;
+// localStorageに全アーカイブを自動保存
+function autosave(){
+  if(!autosaveReady) return; // 起動完了前は保存しない
+  try{
+    syncDToArchive();
+    const payload = JSON.stringify({__archives:ARCHIVES, __cur:curArchive});
+    localStorage.setItem(LS_KEY, payload);
+    // 書き込めたか即読み返して検証
+    const check = localStorage.getItem(LS_KEY);
+    if(check !== payload){ throw new Error('書き込み検証に失敗'); }
+    if(!lastSaveOk){ lastSaveOk=true; }
+  }catch(e){
+    lastSaveOk=false;
+    // 保存失敗を必ず通知（握りつぶさない）
+    toast('⚠️ 自動保存に失敗：'+(e.name==='QuotaExceededError'?'容量超過':e.message)+' → 💾保存でJSONバックアップを取ってください');
+    console.error('autosave failed:', e);
+  }
+}
+// localStorageから復元（あればtrue）
+function restoreFromLS(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return false;
+    const parsed = JSON.parse(raw);
+    if(parsed.__archives && parsed.__archives.length){
+      ARCHIVES = parsed.__archives;
+      curArchive = parsed.__cur || 0;
+      loadArchiveToD(curArchive);
+      return true;
+    }
+  }catch(e){console.error('restore failed:',e);}
+  return false;
+}
+
+function initArchives(){
+  const now = new Date();
+  const defaultLabel = now.getFullYear() + '年' + (now.getMonth()+1) + '月';
+  ARCHIVES = [{
+    label: D.archiveLabel || defaultLabel,
+    companyName: D.companyName,
+    divisionName: D.divisionName,
+    snapshot: D.snapshot || null,
+    snapshotDate: D.snapshotDate || null,
+    master: D.master,
+    groups: D.groups,
+  }];
+  curArchive = 0;
+}
+
+// 現在のDを今のアーカイブに書き戻す
+function syncDToArchive(){
+  syncDefsToD();
+  const a = ARCHIVES[curArchive];
+  if(!a) return;
+  a.companyName = D.companyName;
+  a.divisionName = D.divisionName;
+  a.snapshot = D.snapshot;
+  a.snapshotDate = D.snapshotDate;
+  a.master = D.master;
+  a.groups = D.groups;
+  // 役職・変更区分のカスタム定義（全月共通だが保存のため各アーカイブにも保持）
+  a.rolesDef = ROLES_DEF;
+  a.roleOrder = ROLE_ORDER;
+  a.chDef = CH_DEF;
+  a.roleColors = ROLE_COLORS;
+  a.chColors = CH_COLORS;
+}
+
+// アーカイブからDを読み込む
+function loadArchiveToD(idx){
+  const a = ARCHIVES[idx];
+  if(!a) return;
+  D.archiveLabel = a.label;
+  D.companyName = a.companyName;
+  D.divisionName = a.divisionName;
+  D.snapshot = a.snapshot;
+  D.snapshotDate = a.snapshotDate;
+  D.master = a.master;
+  D.groups = a.groups;
+  // 役職・変更区分の定義を復元（アーカイブに保存されていれば優先）
+  if(a.rolesDef){D.rolesDef=a.rolesDef;D.roleOrder=a.roleOrder;D.chDef=a.chDef;D.roleColors=a.roleColors;D.chColors=a.chColors;}
+  loadDefsFromD();
+  curArchive = idx;
+  aG = D.groups[0]?.id || '';
+}
+
+// 月を切り替え
+function switchArchive(idx){
+  syncDToArchive();
+  loadArchiveToD(idx);
+  renderArchiveBar();
+  renderAll();
+  autosave();
+  toast('📅 ' + ARCHIVES[idx].label + ' に切り替えました');
+}
+
+// 今の月をコピーして新規作成
+function newArchiveFromCurrent(){
+  syncDToArchive();
+  const now = new Date();
+  const suggested = now.getFullYear() + '年' + (now.getMonth()+1) + '月';
+  const label = prompt('新しい月の名前を入力してください', suggested);
+  if(!label) return;
+  // 現在のアーカイブを深コピー
+  const cur = ARCHIVES[curArchive];
+  const copy = JSON.parse(JSON.stringify({
+    label: label,
+    companyName: cur.companyName,
+    divisionName: cur.divisionName,
+    snapshot: null,  // 新月はスナップショットなしから
+    snapshotDate: null,
+    master: cur.master,
+    groups: cur.groups,
+  }));
+  // 変更区分(ch)はリセット（新しい月なので）
+  copy.groups.forEach(g=>g.sections.forEach(s=>{
+    s.members.forEach(m=>{m.ch='';});
+    s.units.forEach(u=>u.members.forEach(m=>{m.ch='';}));
+  }));
+  ARCHIVES.push(copy);
+  loadArchiveToD(ARCHIVES.length-1);
+  renderArchiveBar();
+  renderAll();
+  toast('📅 ' + label + ' を作成しました（前月ベース）');
+}
+
+// 月名変更
+function renameArchive(){
+  const a = ARCHIVES[curArchive];
+  if(!a) return;
+  const label = prompt('月の名前を変更', a.label);
+  if(!label) return;
+  a.label = label;
+  D.archiveLabel = label;
+  renderArchiveBar();
+  autosave();
+  toast('月名を変更しました');
+}
+
+// 月削除
+function deleteArchive(idx){
+  if(ARCHIVES.length<=1){ toast('最後の1つは削除できません'); return; }
+  if(!confirm('「'+ARCHIVES[idx].label+'」を削除しますか？')) return;
+  ARCHIVES.splice(idx,1);
+  if(curArchive>=ARCHIVES.length) curArchive=ARCHIVES.length-1;
+  else if(curArchive>idx) curArchive--;
+  loadArchiveToD(curArchive);
+  renderArchiveBar();
+  renderAll();
+  toast('削除しました');
+}
+
+// アーカイブバー描画（プルダウン）
+function renderArchiveBar(){
+  const sel = document.getElementById('archiveSelect');
+  if(!sel) return;
+  sel.innerHTML = ARCHIVES.map((a,i)=>
+    '<option value="'+i+'"'+(i===curArchive?' selected':'')+'>'+a.label+'</option>'
+  ).join('');
+}
+
+let aG=D.groups[0].id, slideIdx=0;
+const PPTX_URL='/.netlify/functions/pptx';
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2400);}
+function findSec(sid){for(const g of D.groups){const s=g.sections.find(x=>x.id===sid);if(s)return{g,s};}return null;}
+function findUnit(uid_){for(const g of D.groups){for(const s of g.sections){const u=s.units.find(x=>x.id===uid_);if(u)return{g,s,u};}}return null;}
+
+// ── 月次リセット（兼務の変更区分クリア用） ──
+function clearChanges(){
+  if(!confirm('全メンバーの入社・異動フラグをリセットします。\n（兼務中フラグはそのまま保持）'))return;
+  D.groups.forEach(g=>g.sections.forEach(s=>{
+    s.members.forEach(m=>{m.ch='';delete m.from;});
+    s.units.forEach(u=>u.members.forEach(m=>{m.ch='';delete m.from;}));
+  }));
+  renderAll();toast('🔄 入社・異動フラグをリセットしました');
+}
+
+// ── MODE ──
+function sw(mode){
+  ['edit','tree','slide','harel','master'].forEach(m=>document.getElementById(m+'Mode').style.display='none');
+  document.getElementById(mode+'Mode').style.display='flex';
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',['edit','tree','slide','harel','master'][i]===mode));
+  if(mode==='tree') renderTree();
+  if(mode==='slide'){renderSlide();showSlide(slideIdx);}
+  if(mode==='harel') renderHarel();
+  if(mode==='master') renderMaster();
+}
+
+// ── MODAL ──
+function openAddG(){document.getElementById('addGModal').classList.add('on');}
+function closeM(){document.getElementById('addGModal').classList.remove('on');}
+function addG(){
+  const name=document.getElementById('ngN').value.trim();if(!name)return;
+  D.groups.push({id:uid(),name,sub:document.getElementById('ngS').value.trim(),sections:[]});
+  aG=D.groups[D.groups.length-1].id;
+  document.getElementById('ngN').value='';document.getElementById('ngS').value='';
+  closeM();renderAll();toast('部門を追加しました');
+}
+
+// ── SIDEBAR ──
+function renderSidebar(){
+  document.getElementById('gList').innerHTML=D.groups.map((g,i)=>`
+    <div class="gi ${g.id===aG?'on':''}" draggable="true" data-gid="${g.id}" onclick="selG('${g.id}')">
+      <span class="gi-drag">⠿</span>
+      <div class="gi-dot" style="background:${gc(i)}"></div>
+      <div class="gi-name">${g.name}</div>
+      <div class="gi-cnt">${allMembers(g).length}</div>
+      <button class="gi-del" onclick="event.stopPropagation();delG('${g.id}')">🗑</button>
+    </div>`).join('')+`<button class="add-g-btn" onclick="openAddG()">＋ 部門追加</button>`;
+  initDragSort();
+}
+function selG(id){aG=id;renderAll();}
+function delG(id){
+  const g=D.groups.find(x=>x.id===id);if(!g)return;
+  if(!confirm(`「${g.name}」を削除しますか？`))return;
+  D.groups=D.groups.filter(x=>x.id!==id);
+  if(aG===id)aG=D.groups[0]?.id||'';
+  renderAll();toast('部門を削除しました');
+}
+let dragSrcId=null;
+function initDragSort(){
+  document.querySelectorAll('.gi[draggable]').forEach(el=>{
+    el.addEventListener('dragstart',e=>{dragSrcId=el.dataset.gid;el.style.opacity='.4';e.dataTransfer.effectAllowed='move';});
+    el.addEventListener('dragend',e=>{el.style.opacity='1';document.querySelectorAll('.gi').forEach(x=>x.classList.remove('drag-over'));});
+    el.addEventListener('dragover',e=>{e.preventDefault();document.querySelectorAll('.gi').forEach(x=>x.classList.remove('drag-over'));el.classList.add('drag-over');});
+    el.addEventListener('drop',e=>{
+      e.preventDefault();const tid=el.dataset.gid;if(!dragSrcId||dragSrcId===tid)return;
+      const si=D.groups.findIndex(x=>x.id===dragSrcId),ti=D.groups.findIndex(x=>x.id===tid);
+      if(si<0||ti<0)return;const[m]=D.groups.splice(si,1);D.groups.splice(ti,0,m);renderAll();
+    });
+  });
+}
+
+// ── EDITOR ──
+function renderEditor(){
+  const g=D.groups.find(x=>x.id===aG);if(!g){document.getElementById('editor').innerHTML='';return;}
+  const all=allMembers(g);
+  const ny=all.filter(m=>m.ch==='ny').length,id=all.filter(m=>m.ch==='id').length;
+  const kmT=all.filter(m=>m.km).length;
+  document.getElementById('editor').innerHTML=`
+    <div class="fw"><div class="fl">部門名</div><input class="fi big" value="${g.name}" onchange="updGN('${g.id}',this.value)"></div>
+    <div class="fw"><div class="fl">メモ</div><input class="fi" value="${g.sub||''}" placeholder="部長名など" onchange="updGS('${g.id}',this.value)"></div>
+    <div class="stat-bar">
+      <div class="stpill">👥 ${all.length}名</div>
+      ${kmT?`<div class="stpill" style="border-color:var(--km);color:var(--km);">〔〕兼務中 ${kmT}名</div>`:''}
+      ${ny?`<div class="stpill" style="border-color:var(--ny);color:var(--ny);">🆕 入社 ${ny}名</div>`:''}
+      ${id?`<div class="stpill" style="border-color:var(--id);color:var(--id);">🔄 異動 ${id}名</div>`:''}
+
+    </div>
+    ${g.sections.map(s=>renderSecEditor(s)).join('')}
+    <button class="add-g-btn" style="margin-top:4px;" onclick="addSec('${g.id}')">＋ チームを追加</button>`;
+}
+
+function renderSecEditor(s){
+  return `<div class="sec">
+    <div class="sec-hd">
+      <div class="sec-nw"><div class="sec-nl">チーム名</div><input class="sec-ni" value="${s.name}" onchange="updSN('${s.id}',this.value)"></div>
+      <button class="newtag-btn ${s.ch==='new'?'on':''}" onclick="toggleNew('sec','${s.id}')" title="新設チーム">${s.ch==='new'?'🆕 新設':'新設'}</button>
+      <button class="sec-del" onclick="delSec('${s.id}')">🗑</button>
+    </div>
+    <div class="sec-body" data-droptype="sec" data-dropid="${s.id}"
+      ondragover="memberDragOver(event)" ondragleave="memberDragLeave(event)" ondrop="memberDrop(event,'sec','${s.id}')">
+      ${s.members.length>0||s.units.length===0?`
+        <div style="font-size:9px;font-weight:700;color:var(--sub);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">チーム直属メンバー</div>
+        ${renderMemberList(s.members,'sec',s.id)}
+      `:''}
+      ${s.units.map(u=>renderUnitEditor(u)).join('')}
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <button class="add-unit-btn" onclick="addUnit('${s.id}')">＋ ユニットを追加</button>
+      </div>
+      ${renderAddArea('sec',s.id)}
+    </div>
+  </div>`;
+}
+
+function renderUnitEditor(u){
+  return `<div class="unit">
+    <div class="unit-hd">
+      <div class="unit-nw"><div class="unit-nl">ユニット名</div><input class="unit-ni" value="${u.name}" onchange="updUN('${u.id}',this.value)"></div>
+      <button class="newtag-btn ${u.ch==='new'?'on':''}" onclick="toggleNew('unit','${u.id}')" title="新設ユニット">${u.ch==='new'?'🆕 新設':'新設'}</button>
+      <button class="unit-del" onclick="delUnit('${u.id}')">🗑</button>
+    </div>
+    <div class="unit-body" data-droptype="unit" data-dropid="${u.id}"
+      ondragover="memberDragOver(event)" ondragleave="memberDragLeave(event)" ondrop="memberDrop(event,'unit','${u.id}')">
+      ${renderMemberList(u.members,'unit',u.id)}
+      ${renderAddArea('unit',u.id)}
+    </div>
+  </div>`;
+}
+
+function renderMemberList(members,type,id){
+  const sorted=rolesSorted(members);
+  if(!sorted.length)return '';
+  return `<div class="mlist">${sorted.map(m=>`
+    <div class="mrow ${m.ch?'ch-'+m.ch:''}" draggable="true"
+      ondragstart="memberDragStart(event,'${type}','${id}','${m.n}')"
+      ondragend="memberDragEnd(event)">
+      <span class="m-drag" title="ドラッグで移動">⠿</span>
+      <div class="m-name-wrap">
+        <div class="m-name">${m.n}</div>
+      </div>
+      <button class="km-toggle ${m.km?'on':''}" onclick="toggleKm('${type}','${id}','${m.n}')" title="兼務中フラグ">${m.km?'兼務中':'兼務'}</button>
+      <div class="role-grp">
+        ${ROLES_DEF.map(rd=>`<button class="rc ${m.r.split(',').includes(rd.k)?'on-'+rd.k:''}" onclick="toggleRole('${type}','${id}','${m.n}','${rd.k}')">${rd.l}</button>`).join('')}
+      </div>
+      <div class="ch-grp">
+        ${CH_DEF.map(cd=>`<button class="cc ${m.ch===cd.k?'on-'+cd.k:''}" onclick="setCh('${type}','${id}','${m.n}','${cd.k}')">${cd.l}</button>`).join('')}
+      </div>
+      <button class="m-del" onclick="delM('${type}','${id}','${m.n}')">✕</button>
+    </div>`).join('')}</div>`;
+}
+
+function renderAddArea(type,id){
+  return `<div class="add-area">
+    <div class="add-area-lbl">メンバーを追加</div>
+    <div class="add-row" style="position:relative;">
+      <div class="af" style="position:relative;">
+        <div class="af-lbl">名前</div>
+        <input id="ai_${id}" placeholder="名前を入力" autocomplete="off"
+          oninput="showSuggest('${id}')" onfocus="showSuggest('${id}')"
+          onblur="setTimeout(()=>hideSuggest('${id}'),200)"
+          onkeydown="if(event.key==='Enter')addM('${type}','${id}')">
+        <div class="master-dropdown" id="dd_${id}" style="display:none;position:absolute;top:100%;left:0;"></div>
+      </div>
+      <div class="af"><div class="af-lbl">役職</div>
+        <select id="ar_${id}">
+          ${ROLES_DEF.map(r=>`<option value="${r.k}" ${r.k==='member'?'selected':''}>${r.l}</option>`).join('')}
+        </select>
+      </div>
+      <div class="af"><div class="af-lbl">兼務中</div>
+        <select id="ak_${id}"><option value="false">いいえ</option><option value="true">はい</option></select>
+      </div>
+      <div class="af"><div class="af-lbl">今回の変更</div>
+        <select id="ac_${id}">
+          <option value="">変更なし</option>
+          ${CH_DEF.map(c=>`<option value="${c.k}">${c.l}</option>`).join('')}
+        </select>
+      </div>
+      <button class="add-sub" onclick="addM('${type}','${id}')">追加</button>
+    </div>
+  </div>`;
+}
+
+// ── マスタサジェスト ──
+function showSuggest(id){
+  const inp=document.getElementById('ai_'+id);const dd=document.getElementById('dd_'+id);
+  const q=inp.value.trim();
+  const filtered=D.master.filter(m=>!q||m.name.includes(q)).slice(0,12);
+  if(!filtered.length){dd.style.display='none';return;}
+  dd.innerHTML=filtered.map(m=>`<div class="master-item" onmousedown="selectMaster('${id}','${m.name}','${m.defaultRole}')">${m.name}<em>${m.dept}</em></div>`).join('');
+  dd.style.display='block';
+}
+function hideSuggest(id){const dd=document.getElementById('dd_'+id);if(dd)dd.style.display='none';}
+function selectMaster(id,name,role){
+  const inp=document.getElementById('ai_'+id);const roleEl=document.getElementById('ar_'+id);
+  inp.value=name;if(roleEl)roleEl.value=role;hideSuggest(id);
+}
+
+// ── DATA ACTIONS ──
+function updGN(id,v){const g=D.groups.find(x=>x.id===id);if(g){g.name=v;renderSidebar();}}
+function updGS(id,v){const g=D.groups.find(x=>x.id===id);if(g)g.sub=v;}
+function updSN(sid,v){const r=findSec(sid);if(r)r.s.name=v;}
+function updUN(uid_,v){const r=findUnit(uid_);if(r)r.u.name=v;}
+function toggleNew(type,id){
+  if(type==='sec'){const r=findSec(id);if(r){r.s.ch=r.s.ch==='new'?'':'new';}}
+  else if(type==='unit'){const r=findUnit(id);if(r){r.u.ch=r.u.ch==='new'?'':'new';}}
+  renderAll();
+}
+
+// ── メンバー ドラッグ&ドロップ移動（同一部門内のみ） ──
+let memberDrag=null; // {type,id,name}
+function findGroupOfContainer(type,id){
+  // type/idのコンテナが属する部門を返す
+  for(const g of D.groups){
+    for(const s of g.sections){
+      if(type==='sec'&&s.id===id) return g;
+      if(type==='unit'){ if(s.units.find(u=>u.id===id)) return g; }
+    }
+  }
+  return null;
+}
+function memberDragStart(e,type,id,name){
+  memberDrag={type,id,name};
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+  try{e.dataTransfer.setData('text/plain',name);}catch(_){}
+}
+function memberDragEnd(e){
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.drop-target').forEach(el=>el.classList.remove('drop-target'));
+}
+function memberDragOver(e){
+  if(!memberDrag)return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  e.currentTarget.classList.add('drop-target');
+}
+function memberDragLeave(e){
+  e.currentTarget.classList.remove('drop-target');
+}
+function memberDrop(e,destType,destId){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drop-target');
+  if(!memberDrag)return;
+  const {type:srcType,id:srcId,name}=memberDrag;
+  memberDrag=null;
+  // 同じ場所なら何もしない
+  if(srcType===destType&&srcId===destId)return;
+  // 同一部門内のみ許可
+  const srcG=findGroupOfContainer(srcType,srcId);
+  const destG=findGroupOfContainer(destType,destId);
+  if(!srcG||!destG){toast('❌ 移動先が見つかりません');return;}
+  if(srcG.id!==destG.id){toast('⚠️ 移動は同じ部門内のみ可能です');return;}
+  // 元リストから取り出し
+  const srcList=getMemberList(srcType,srcId);
+  const destList=getMemberList(destType,destId);
+  if(!srcList||!destList)return;
+  const i=srcList.findIndex(x=>x.n===name);
+  if(i<0)return;
+  // 移動元の所属情報を取得（異動前として記録）
+  let srcSecName='', srcUnitName='';
+  if(srcType==='sec'){const r=findSec(srcId);if(r)srcSecName=r.s.name;}
+  else if(srcType==='unit'){const r=findUnit(srcId);if(r){srcSecName=r.s.name;srcUnitName=r.u.name;}}
+  const [m]=srcList.splice(i,1);
+  // 移動したら自動で「異動」をセット（手動で解除可能）
+  m.ch='id';
+  // 異動前情報を記録（既にfromがあれば最初の移動元を保持）
+  if(!m.from){
+    m.from={group:srcG.name,section:srcSecName,unit:srcUnitName};
+  }
+  destList.push(m);
+  renderAll();
+  toast('🔄 '+name+' を移動（異動をセット）');
+}
+
+function getMemberList(type,id){
+  if(type==='sec'){const r=findSec(id);return r?r.s.members:null;}
+  if(type==='unit'){const r=findUnit(id);return r?r.u.members:null;}
+  return null;
+}
+function toggleRole(type,id,name,role){
+  const members=getMemberList(type,id);if(!members)return;
+  const m=members.find(x=>x.n===name);if(!m)return;
+  const roles=m.r?m.r.split(',').filter(Boolean):[];
+  const idx=roles.indexOf(role);
+  if(idx>=0){if(roles.length>1)roles.splice(idx,1);}else roles.push(role);
+  m.r=roles.join(',');renderAll();
+}
+function toggleKm(type,id,name){
+  const members=getMemberList(type,id);if(!members)return;
+  const m=members.find(x=>x.n===name);if(!m)return;
+  m.km=!m.km;renderAll();
+}
+function setCh(type,id,name,ch){
+  const members=getMemberList(type,id);if(!members)return;
+  const m=members.find(x=>x.n===name);if(!m)return;
+  m.ch=m.ch===ch?'':ch;
+  if(m.ch!=='id')delete m.from;
+  renderAll();
+}
+function delM(type,id,name){
+  const members=getMemberList(type,id);if(!members)return;
+  const idx=members.findIndex(x=>x.n===name);if(idx>=0)members.splice(idx,1);renderAll();
+}
+function addM(type,id){
+  const inp=document.getElementById('ai_'+id);if(!inp)return;
+  const name=inp.value.trim();if(!name)return;
+  // マスタに存在しない名前は追加不可
+  if(!D.master.find(m=>m.name===name)){
+    toast('❌「'+name+'」はマスタに未登録です。先に👥マスタタブで追加してください');
+    return;
+  }
+  const role=document.getElementById('ar_'+id)?.value||'member';
+  const km=document.getElementById('ak_'+id)?.value==='true';
+  const ch=document.getElementById('ac_'+id)?.value||'';
+  const members=getMemberList(type,id);if(!members)return;
+  members.push({n:name,r:role,km,ch});inp.value='';renderAll();
+}
+function addSec(gid){
+  const g=D.groups.find(x=>x.id===gid);if(!g)return;
+  const name=prompt('チーム名（例: Enterprise Team）');if(!name)return;
+  g.sections.push({id:uid(),name,members:[],units:[]});renderAll();
+}
+function delSec(sid){
+  if(!confirm('このチームを削除しますか？'))return;
+  for(const g of D.groups){const i=g.sections.findIndex(x=>x.id===sid);if(i>=0){g.sections.splice(i,1);renderAll();return;}}
+}
+function addUnit(sid){
+  const r=findSec(sid);if(!r)return;
+  const name=prompt('ユニット名（例: Unit1）');if(!name)return;
+  r.s.units.push({id:uid(),name,members:[]});renderAll();
+}
+function delUnit(uid_){
+  if(!confirm('このユニットを削除しますか？'))return;
+  const r=findUnit(uid_);if(!r)return;
+  r.s.units=r.s.units.filter(x=>x.id!==uid_);renderAll();
+}
+
+// ── メンバーHTML（ツリー・スライド共通） ──
+function memberHTML(m,cls='tm'){
+  const rbs=m.r.split(',').filter(k=>k!=='member'&&k!=='gyomu').map(k=>`<span class="rb rb-${k}">${ROLES_DEF.find(x=>x.k===k)?.l||k}</span>`).join('');
+  const gyomu=m.r.split(',').includes('gyomu')?`<span class="rb rb-gyomu">委託</span>`:'';
+  const kmMark=m.km?`<span class="t-km">兼</span>`:'';
+  return `<span class="${cls} ${m.ch}">${rbs}${gyomu}${m.n}${kmMark}</span>`;
+}
+function memberSlideHTML(m){
+  const rbs=m.r.split(',').filter(k=>k!=='member'&&k!=='gyomu').map(k=>`<span class="slrb slrb-${k}">${ROLES_DEF.find(x=>x.k===k)?.l||k}</span>`).join('');
+  const gyomu=m.r.split(',').includes('gyomu')?`<span class="slrb slrb-gyomu">委託</span>`:'';
+  const kmMark=m.km?`<span class="sl-km-mark">兼</span>`:'';
+  return `<span class="${m.ch?'slm '+m.ch:'slm'}">${rbs}${gyomu}${m.n}${kmMark}</span>`;
+}
+
+// ── TREE ──
+const ROW = 36;   // 1リーフ(メンバー)の行高さ
+const GAP = 6;    // ノード間の余白
+
+// ノードを描画。返り値 {html, leaves} leaves=占有リーフ数
+function box(label, sub, opt){
+  opt = opt || {};
+  const border = opt.border || '#d0cdc5';
+  const bg = opt.bg || '#fff';
+  const tcolor = opt.color || '#1a1815';
+  const w = opt.width || '150px';
+  return '<div style="display:inline-flex;flex-direction:column;justify-content:center;width:' + w + ';box-sizing:border-box;height:' + (ROW-GAP) + 'px;padding:0 10px;border:1.5px solid ' + border + ';border-radius:6px;background:' + bg + ';font-size:11px;font-weight:700;color:' + tcolor + ';box-shadow:0 1px 2px rgba(0,0,0,.04);">'
+    + '<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + label + '</div>'
+    + (sub ? '<div style="font-size:8px;font-weight:400;opacity:.65;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + sub + '</div>' : '')
+    + '</div>';
+}
+
+function memberBox(m){
+  const roles = m.r.split(',').filter(k=>k!=='member');
+  const roleLabel = roles.length ? roles.map(k=>(ROLES_DEF.find(x=>x.k===k)?.l||k)).join('/') : '';
+  const chColor = m.ch ? '#'+(CH_COLORS[m.ch]||'2563EB') : null;
+  const chBg = m.ch ? (CH_COLORS[m.ch]?'#'+CH_COLORS[m.ch]+'22':'#dbeafe') : null;
+  const km = m.km ? ' 〔兼〕' : '';
+  const badgeColor = roles.length ? ('#'+(ROLE_COLORS[roles[0]]||'94A3B8')) : '';
+  return '<div style="display:inline-flex;align-items:center;gap:5px;min-width:120px;box-sizing:border-box;height:' + (ROW-GAP) + 'px;padding:0 9px;border:1.5px solid ' + (chColor||'#e2dfd7') + ';border-radius:5px;background:' + (chBg||'#fff') + ';font-size:11px;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.04);">'
+    + (roleLabel ? '<span style="font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;color:#fff;background:' + badgeColor + ';">' + roleLabel + '</span>' : '')
+    + '<span style="font-weight:' + (m.ch?'700':'500') + ';color:' + (chColor||'#1a1815') + ';">' + m.n + km + '</span>'
+    + '</div>';
+}
+
+// 再帰: ノード(自分のボックスHTML) + 子配列[{boxHTML, leaves, render関数}] を受け取り
+// 自分を子塊の先頭行に置き、コネクタつきで右に子を展開
+// 戻り: {html, leaves}
+function layoutNode(selfBoxHTML, childResults, lineColor){
+  if(!childResults.length){
+    return {html:'<div style="height:' + ROW + 'px;display:flex;align-items:center;">' + selfBoxHTML + '</div>', leaves:1};
+  }
+  const totalLeaves = childResults.reduce((a,c)=>a+c.leaves,0);
+  const totalH = totalLeaves * ROW;
+
+  let childCol = '<div style="display:flex;flex-direction:column;">';
+  childResults.forEach(cr=>{ childCol += cr.html; });
+  childCol += '</div>';
+
+  // 各子の接続Y = その子塊の先頭行の中心。
+  // 子塊は先頭にボックスがあるので、塊の開始Y + ROW/2 が接続点。
+  let centers = [];
+  let acc = 0;
+  childResults.forEach(cr=>{
+    centers.push(acc + ROW/2);   // 塊の先頭行の中心
+    acc += cr.leaves*ROW;        // 次の塊へ
+  });
+
+  const SVGW = 34;
+  const parentCenterY = ROW/2;
+  const branchX = 16;
+  let svg = '<svg width="' + SVGW + '" height="' + totalH + '" style="flex-shrink:0;display:block;">';
+  // 親中心 → 縦線
+  svg += '<line x1="0" y1="' + parentCenterY + '" x2="' + branchX + '" y2="' + parentCenterY + '" stroke="' + lineColor + '" stroke-width="2"/>';
+  // 縦線
+  const minY = Math.min(parentCenterY, centers[0]);
+  const maxY = Math.max(parentCenterY, centers[centers.length-1]);
+  svg += '<line x1="' + branchX + '" y1="' + minY + '" x2="' + branchX + '" y2="' + maxY + '" stroke="' + lineColor + '" stroke-width="2"/>';
+  // 各子へ横線（ボックス左端=SVGW まで）
+  centers.forEach(cy=>{ svg += '<line x1="' + branchX + '" y1="' + cy + '" x2="' + SVGW + '" y2="' + cy + '" stroke="' + lineColor + '" stroke-width="2"/>'; });
+  svg += '</svg>';
+
+  const html = '<div style="display:flex;align-items:flex-start;">'
+    + '<div style="height:' + ROW + 'px;display:flex;align-items:center;flex-shrink:0;">' + selfBoxHTML + '</div>'
+    + svg
+    + childCol
+  + '</div>';
+  return {html, leaves: totalLeaves};
+}
+
+function renderTree(){
+  const groupResults = D.groups.map((g,gi)=>{
+    const c = gc(gi);
+    const newBadge = '<span style="font-size:8px;font-weight:700;background:#ea580c;color:#fff;border-radius:3px;padding:1px 4px;margin-left:4px;">新設</span>';
+    const secResults = g.sections.map(s=>{
+      const sLabel = s.name + (s.ch==='new'?newBadge:'');
+      if(s.units.length){
+        const unitResults = s.units.map(u=>{
+          const uLabel = u.name + (u.ch==='new'?newBadge:'');
+          const memResults = rolesSorted(u.members).map(m=>layoutNode(memberBox(m),[],c));
+          return layoutNode(box(uLabel,'',{border:u.ch==='new'?'#ea580c':c,color:c,width:'130px'}), memResults, c+'66');
+        });
+        const directMem = rolesSorted(s.members).map(m=>layoutNode(memberBox(m),[],c));
+        return layoutNode(box(sLabel,'',{border:s.ch==='new'?'#ea580c':c,width:'145px'}), directMem.concat(unitResults), c+'88');
+      } else {
+        const memResults = rolesSorted(s.members).map(m=>layoutNode(memberBox(m),[],c));
+        return layoutNode(box(sLabel,'',{border:s.ch==='new'?'#ea580c':c,width:'145px'}), memResults, c+'88');
+      }
+    });
+    return layoutNode(box(g.name,g.sub,{border:c,color:c,width:'160px'}), secResults, c);
+  });
+  const divResult = layoutNode(box(D.divisionName,'',{bg:'#334155',color:'#fff',border:'#334155',width:'180px'}), groupResults, '#94a3b8');
+  const compResult = layoutNode(box(D.companyName,'',{bg:'#1a1815',color:'#fff',border:'#1a1815',width:'150px'}), [divResult], '#334155');
+
+  document.getElementById('treePanel').innerHTML =
+    '<div id="treeCapture" style="padding:20px;overflow:auto;background:var(--bg);min-width:max-content;">'
+    + '<div style="margin-bottom:16px;font-size:14px;font-weight:900;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">'
+      + '<span>組織ツリー</span>'
+      + '<span style="font-size:11px;font-weight:400;color:#666;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#16a34a;"></span> 入社　<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563eb;"></span> 異動　<span class="km-badge" style="font-size:8px;">兼務中</span> 兼務</span>'
+      + '<button class="btn btn-g" id="dlTreeBtn" style="margin-left:auto;" onclick="downloadTreeImage()">🖼 画像DL</button>'
+    + '</div>'
+    + '<div style="display:inline-block;">' + compResult.html + '</div>'
+    + '</div>';
+}
+
+// ── SLIDE ──
+function renderSlide(){
+  document.getElementById('slOuter').innerHTML=`
+    <div class="sl-nav">
+      <span class="sl-nav-lbl">部門：</span>
+      <div class="stabs">${D.groups.map((g,i)=>`<button class="stab ${i===slideIdx?'on':''}" onclick="showSlide(${i})">${g.name}</button>`).join('')}</div>
+      <button class="btn btn-p" style="margin-left:auto;" onclick="dlPptx(${slideIdx})">📥 PPTXダウンロード</button>
+    </div>
+    ${D.groups.map((g,i)=>buildSlide(g,i)).join('')}`;
+}
+function showSlide(i){
+  slideIdx=i;
+  document.querySelectorAll('.sldv').forEach((c,j)=>c.classList.toggle('on',j===i));
+  document.querySelectorAll('.stab').forEach((b,j)=>b.classList.toggle('on',j===i));
+  const dlBtn=document.querySelector('#slOuter .btn-p');
+  if(dlBtn)dlBtn.onclick=()=>dlPptx(i);
+}
+async function dlPptx(gi){
+  const g=D.groups[gi];if(!g)return;
+  if(typeof PptxGenJS==='undefined'){toast('❌ PPTXライブラリが読み込めていません。ページを再読込してください');return;}
+  toast('⏳ PPTX生成中...');
+  try{
+    const GCx=['E8521A','2563EB','16A34A','9333EA','0891B2','CA8A04','DC2626','0D9488'];
+    const colorHex=GCx[gi%GCx.length];
+    // 変更区分の色・ラベルは動的（新設は固定追加）
+    const CH_COLOR=Object.assign({new:'EA580C'}, CH_COLORS);
+    const CH_LABEL=Object.assign({new:'新設'}, Object.fromEntries(CH_DEF.map(c=>[c.k,c.l])));
+    const FS=11;
+    const sortFn=(a,b)=>ROLE_ORDER.indexOf(a.r.split(',')[0])-ROLE_ORDER.indexOf(b.r.split(',')[0]);
+
+    const pres=new PptxGenJS();
+    pres.defineLayout({name:'W16x9',width:10,height:5.625});
+    pres.layout='W16x9';
+    const slide=pres.addSlide();
+    slide.background={color:'FFFFFF'};
+
+    // タイトル
+    slide.addShape(pres.shapes.RECTANGLE,{x:0,y:0,w:0.16,h:5.625,fill:{color:colorHex},line:{type:'none'}});
+    slide.addText(g.name,{x:0.35,y:0.16,w:9,h:0.5,fontSize:24,fontFace:'Noto Sans JP',bold:true,color:colorHex,margin:0});
+    const today=new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'});
+    const metaText=[g.sub,(ARCHIVES[curArchive]?.label||''),today].filter(Boolean).join('　');
+    slide.addText(metaText,{x:0.36,y:0.62,w:9.3,h:0.26,fontSize:10,fontFace:'Noto Sans JP',color:'888888',margin:0});
+
+    // 変更サマリー（全変更区分を集計）
+    const all=allMembers(g);
+    const changes=CH_DEF.map(c=>({k:c.k,n:all.filter(m=>m.ch===c.k).length})).filter(c=>c.n>0);
+    if(changes.length){
+      const sr=[];
+      changes.forEach((c,i)=>{
+        sr.push({text:CH_LABEL[c.k]+' '+c.n+'名',options:{fontSize:10,bold:true,color:CH_COLOR[c.k]||'2563EB',fontFace:'Noto Sans JP'}});
+        if(i<changes.length-1)sr.push({text:'　/　',options:{fontSize:10,color:'CCCCCC',fontFace:'Noto Sans JP'}});
+      });
+      slide.addText(sr,{x:0.36,y:0.9,w:9.3,h:0.24,margin:0});
+    }
+
+    // メンバーのリッチテキスト生成（役職バッジ＋兼務）。memberだけ無印、他はバッジ
+    const memberRich=(members)=>{
+      const sorted=[...members].sort(sortFn);
+      const rich=[];
+      sorted.forEach((m,mi)=>{
+        const roles=m.r.split(',').filter(k=>k!=='member');
+        const chColor=m.ch?(CH_COLOR[m.ch]||'2563EB'):null;
+        roles.forEach(k=>{const def=ROLES_DEF.find(x=>x.k===k);if(!def)return;rich.push({text:'['+def.l+']',options:{fontSize:FS-2,bold:true,color:ROLE_COLORS[k]||'94A3B8',fontFace:'Noto Sans JP'}});rich.push({text:' ',options:{fontSize:FS,fontFace:'Noto Sans JP'}});});
+        const suffix=m.km?'〔兼〕':'';
+        rich.push({text:m.n+suffix,options:{fontSize:FS,bold:!!m.ch,color:chColor||'1A1815',fontFace:'Noto Sans JP'}});
+        if(mi<sorted.length-1)rich.push({text:'　',options:{fontSize:FS,fontFace:'Noto Sans JP'}});
+      });
+      if(rich.length===0)rich.push({text:'未配置',options:{fontSize:FS,color:'CCCCCC',fontFace:'Noto Sans JP'}});
+      return rich;
+    };
+
+    // 行データを構築（画面と同じ：チーム見出し＋直属/ユニット行）
+    // rows: [{type:'teamHeader', name, isNew} | {type:'bar', label, labelColor, members, isNew}]
+    const rows=[];
+    g.sections.forEach(s=>{
+      if(s.units.length>0){
+        // チーム見出し行
+        rows.push({type:'header', name:s.name, isNew:s.ch==='new'});
+        // 直属メンバーがいれば「直属」バー
+        if(s.members.length>0){
+          rows.push({type:'bar', label:'（直属）', labelColor:'9CA3AF', members:s.members, isNew:false});
+        }
+        // 各ユニット
+        s.units.forEach(u=>{
+          rows.push({type:'bar', label:u.name, labelColor:(u.ch==='new'?'EA580C':colorHex), members:u.members, isNew:u.ch==='new'});
+        });
+      } else {
+        // ユニットなし：チーム名ラベルのバー
+        rows.push({type:'bar', label:s.name, labelColor:(s.ch==='new'?'EA580C':colorHex), members:s.members, isNew:s.ch==='new'});
+      }
+    });
+
+    // レイアウト
+    const TOP=1.28, LEFT=0.3, TOTAL_W=9.4, LABEL_W=1.6;
+    const GAPv=0.08, HEADER_H=0.28;
+    const AREA_H=5.5-TOP;
+    // 行高さを行数で決定（最小0.34, 最大0.62）
+    const barRows=rows.filter(r=>r.type==='bar').length;
+    const headerRows=rows.filter(r=>r.type==='header').length;
+    const usableH=AREA_H - headerRows*(HEADER_H+GAPv) - (rows.length-1)*GAPv;
+    let barH=Math.min(0.62, Math.max(0.32, usableH/Math.max(barRows,1)));
+
+    let y=TOP;
+    rows.forEach(r=>{
+      if(r.type==='header'){
+        const label=r.name+(r.isNew?'　【新設】':'');
+        slide.addShape(pres.shapes.RECTANGLE,{x:LEFT,y,w:0.06,h:HEADER_H,fill:{color:colorHex},line:{type:'none'}});
+        slide.addText(label,{x:LEFT+0.1,y,w:TOTAL_W-0.1,h:HEADER_H,fontSize:FS+1,bold:true,color:colorHex,fontFace:'Noto Sans JP',valign:'middle',margin:0});
+        y+=HEADER_H+GAPv;
+      } else {
+        // 左ラベル
+        slide.addShape(pres.shapes.RECTANGLE,{x:LEFT,y,w:LABEL_W,h:barH,fill:{color:r.labelColor},line:{type:'none'}});
+        slide.addText(r.label,{x:LEFT,y,w:LABEL_W,h:barH,fontSize:FS,bold:true,color:'FFFFFF',fontFace:'Noto Sans JP',align:'center',valign:'middle',margin:1});
+        // 右メンバー
+        const memX=LEFT+LABEL_W, memW=TOTAL_W-LABEL_W;
+        slide.addShape(pres.shapes.RECTANGLE,{x:memX,y,w:memW,h:barH,fill:{color:'FAFAF8'},line:{color:'E2DFD7',width:1}});
+        slide.addText(memberRich(r.members),{x:memX+0.12,y,w:memW-0.24,h:barH,fontFace:'Noto Sans JP',valign:'middle',align:'left',margin:1,wrap:true,fit:'shrink'});
+        y+=barH+GAPv;
+      }
+    });
+
+    await pres.writeFile({fileName:g.name+'.pptx'});
+    toast('✅ PPTXをダウンロードしました');
+  }catch(e){toast('❌ PPTX生成エラー: '+e.message);}
+}
+function buildSlide(g,gi){
+  const c=gc(gi);
+  const all=allMembers(g);
+  const ny=all.filter(m=>m.ch==='ny').length,id=all.filter(m=>m.ch==='id').length;
+  // 列数：チーム数で決定
+  const cols=g.sections.length<=3?1:2;
+
+  const secHTML=g.sections.map(s=>{
+    // ユニットがある場合：チーム名を見出しにしてユニットを行で表示
+    if(s.units.length>0){
+      return `<div class="sl-team-block">
+        <div class="sl-team-label">${s.name}</div>
+        ${s.members.length?`<div class="sl-lrow"><div class="sl-ltag" style="background:${c}aa;">（直属）</div><div class="sl-lnames">${rolesSorted(s.members).map(memberSlideHTML).join('')}</div></div>`:''}
+        ${s.units.map(u=>`<div class="sl-lrow">
+          <div class="sl-ltag" style="background:${c};">${u.name}</div>
+          <div class="sl-lnames">${rolesSorted(u.members).map(memberSlideHTML).join('')||'<span style="color:#ccc;">未配置</span>'}</div>
+        </div>`).join('')}
+      </div>`;
+    }
+    // ユニットなし：チーム名タグ＋メンバー
+    return `<div class="sl-lrow">
+      <div class="sl-ltag" style="background:${c};">${s.name}</div>
+      <div class="sl-lnames">${rolesSorted(s.members).map(memberSlideHTML).join('')||'<span style="color:#ccc;">未配置</span>'}</div>
+    </div>`;
+  }).join('');
+
+  return `<div class="sldv" id="sc_${gi}">
+    <div class="sl-bar" style="background:linear-gradient(90deg,${c} 60%,${c}55);"></div>
+    <div class="sl-p">
+      <div class="sl-ey" style="color:${c};">新体制 組織図</div>
+      <div class="sl-h1">${g.name}</div>
+      <div class="sl-meta">
+        ${g.sub?`<span>${g.sub}</span>`:''}
+        ${ny?`<span class="sl-meta-chip" style="background:var(--ny-l);color:var(--ny);">🆕 入社 ${ny}名</span>`:''}
+        ${id?`<span class="sl-meta-chip" style="background:var(--id-l);color:var(--id);">🔄 異動 ${id}名</span>`:''}
+
+        <span style="margin-left:auto;font-size:11px;">${new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'})} 適用</span>
+      </div>
+      <div class="sl-ll" style="grid-template-columns:repeat(${cols},1fr);gap:6px;">${secHTML}</div>
+    </div>
+    <div class="sl-leg">
+      <div class="sll"><div class="slld" style="background:var(--ny)"></div>入社</div>
+      <div class="sll"><div class="slld" style="background:var(--id)"></div>異動</div>
+
+      <div class="sll"><span class="sl-km-mark">兼</span>兼務中</div>
+    </div>
+  </div>`;
+}
+
+// ── 発令案 ──
+function renderHarel(){
+  syncDToArchive();
+  // フラグで「誰を出すか」決定。異動前は前月アーカイブから自動補完
+  const prevArchive = curArchive > 0 ? ARCHIVES[curArchive-1] : null;
+  // 前月の各人の所属マップ（名前→主所属。複数あればkm=falseを優先）
+  function buildPrevMap(groups){
+    const map={};
+    (groups||[]).forEach(g=>g.sections.forEach(s=>{
+      const add=(m,unitName)=>{
+        if(!map[m.n]||(!m.km&&map[m.n].km)){
+          map[m.n]={group:g.name,section:s.name,unit:unitName||'',km:!!m.km};
+        }
+      };
+      s.members.forEach(m=>add(m,''));
+      (s.units||[]).forEach(u=>u.members.forEach(m=>add(m,u.name)));
+    }));
+    return map;
+  }
+  const prevMap = prevArchive ? buildPrevMap(prevArchive.groups) : null;
+
+  // 変更区分ごとに人を集める（kmは別枠）
+  const byCh = {}; CH_DEF.forEach(c=>byCh[c.k]=[]);
+  const kenmu=[];
+  D.groups.forEach(g=>g.sections.forEach(s=>{
+    const scan=(m,unitName)=>{
+      const base={name:m.n,role:rl(m.r),group:g.name,section:s.name,unit:unitName||''};
+      if(m.ch && byCh[m.ch]){
+        // 異動前情報：移動時の記録を優先、なければ前月から補完
+        let fromG='',fromS='',fromU='';
+        if(m.from){fromG=m.from.group||'';fromS=m.from.section||'';fromU=m.from.unit||'';}
+        else if(prevMap && prevMap[m.n]){fromG=prevMap[m.n].group;fromS=prevMap[m.n].section;fromU=prevMap[m.n].unit;}
+        byCh[m.ch].push({...base,fromGroup:fromG,fromSection:fromS,fromUnit:fromU});
+      }
+      if(m.km)kenmu.push(base);
+    };
+    s.members.forEach(m=>scan(m,''));
+    s.units.forEach(u=>u.members.forEach(m=>scan(m,u.name)));
+  }));
+
+  // 新設チーム/ユニット
+  const newOrgs=[];
+  D.groups.forEach(g=>g.sections.forEach(s=>{
+    if(s.ch==='new')newOrgs.push({type:'チーム',group:g.name,name:s.name});
+    s.units.forEach(u=>{if(u.ch==='new')newOrgs.push({type:'ユニット',group:g.name,name:s.name+' / '+u.name});});
+  }));
+
+  const totalFlags=Object.values(byCh).reduce((a,arr)=>a+arr.length,0)+kenmu.length;
+  const prevNote=prevArchive?`異動前の所属は前月「${prevArchive.label}」から自動補完しています。`:'前月アーカイブがないため、異動前はドラッグ移動の記録のみ表示します。';
+  const note = totalFlags>0
+    ? `✅ フラグが付いた人だけを表示（合計${totalFlags}件）。${prevNote}`
+    : `まだフラグが付いた人がいません。編集タブで変更区分フラグを付けるか、メンバーをドラッグ移動すると、ここに表示されます。`;
+
+  // 各変更区分のセクションを動的生成
+  const isIdLike=(k)=>{const c=CH_DEF.find(x=>x.k===k);return c&&(c.l.includes('異動')||k==='id');};
+  let sections='';
+  CH_DEF.forEach(c=>{
+    const rows=byCh[c.k];
+    if(isIdLike(c.k)){
+      sections+=hSec(c.l+'者','id',rows,
+        [c.l+'者','社員番号','メールアドレス','異動前：部署','異動前：チーム','異動前：ユニット','異動後：部署','チーム','ユニット','役職'],
+        r=>[r.name,'','',r.fromGroup||'',r.fromSection||'',r.fromUnit||'',r.group,r.section,r.unit,r.role]);
+    } else {
+      sections+=hSec(c.l+'者',(c.k==='ny'?'ny':'id'),rows,
+        [c.l+'者','社員番号','メールアドレス','部署','部門コード','チーム','ユニット','役職','備考'],
+        r=>[r.name,'','',r.group,'',r.section,r.unit,r.role,'']);
+    }
+  });
+
+  document.getElementById('harelPanel').innerHTML=`
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px;flex-wrap:wrap;">
+      <div style="font-size:17px;font-weight:900;">📋 発令案（${ARCHIVES[curArchive]?.label||''}）</div>
+      <button class="btn btn-warn" onclick="clearChanges()">🔄 全フラグをリセット</button>
+    </div>
+    <div style="background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:9px 14px;font-size:11px;color:#15803d;line-height:1.6;margin-bottom:12px;">${note}</div>
+    <div class="hn">💡「行コピー」→ スプレッドシートにそのままペースト（タブ区切り）。発令案はフラグが付いた人だけ表示します。</div>
+    ${newOrgs.length?`<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:9px 14px;font-size:11px;color:#9a3412;margin-bottom:12px;"><strong>🆕 新設組織：</strong>${newOrgs.map(o=>o.type+'「'+o.name+'」（'+o.group+'）').join('、')}</div>`:''}
+    ${sections}
+    ${hSec('兼務者','km',kenmu,
+      ['兼務者','社員番号','メールアドレス','兼務先：部署','チーム','ユニット','役職'],
+      r=>[r.name,'','',r.group,r.section,r.unit,r.role])}`;
+}
+function hSec(title,cls,rows,cols,fn){
+  const tid='ht_'+cls+'_'+title.replace(/[^a-zA-Z0-9]/g,'');
+  return `<div class="hs">
+    <div class="hsh">
+      <div class="hb ${cls}">${title}　${rows.length}名</div>
+      ${rows.length?`<button class="cab" onclick="cpAll('${tid}')">全行コピー</button>`:''}
+    </div>
+    ${!rows.length?`<div class="emp">該当者なし</div>`:
+    `<table class="ht" id="${tid}">
+      <thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}<th></th></tr></thead>
+      <tbody>${rows.map((r,i)=>{const cells=fn(r);return`<tr>${cells.map(c=>`<td>${c}</td>`).join('')}<td><button class="cr" onclick="cpRow('${tid}',${i})">コピー</button></td></tr>`;}).join('')}</tbody>
+    </table>`}
+  </div>`;
+}
+function cpAll(tid){
+  const t=document.getElementById(tid);if(!t)return;
+  navigator.clipboard.writeText([...t.querySelectorAll('tbody tr')].map(r=>[...r.querySelectorAll('td:not(:last-child)')].map(c=>c.textContent).join('\t')).join('\n')).then(()=>toast('📋 コピーしました'));
+}
+function cpRow(tid,i){
+  const t=document.getElementById(tid);if(!t)return;
+  const row=t.querySelectorAll('tbody tr')[i];if(!row)return;
+  navigator.clipboard.writeText([...row.querySelectorAll('td:not(:last-child)')].map(c=>c.textContent).join('\t')).then(()=>toast('📋 コピーしました'));
+}
+
+// ── マスタ ──
+let masterFilter='';
+function renderMaster(){
+  const filtered=D.master.filter(m=>!masterFilter||m.name.includes(masterFilter)||m.dept.includes(masterFilter));
+  document.getElementById('masterPanel').innerHTML=`
+    <div style="font-size:17px;font-weight:900;margin-bottom:12px;">👥 メンバーマスタ</div>
+    <div class="master-search">
+      <input placeholder="名前・部署で絞り込み" value="${masterFilter}" oninput="masterFilter=this.value;renderMaster()">
+      <span style="font-size:12px;color:var(--sub);">${filtered.length}件</span>
+      <button class="btn btn-p" style="margin-left:auto;" onclick="addMasterRow()">＋ 追加</button>
+    </div>
+    <table class="master-table">
+      <thead><tr><th>名前</th><th>所属部署</th><th>デフォルト役職</th><th></th></tr></thead>
+      <tbody>
+        ${filtered.map(m=>`<tr>
+          <td><input value="${m.name}" onchange="updMaster('${m.id}','name',this.value)"></td>
+          <td><input value="${m.dept}" onchange="updMaster('${m.id}','dept',this.value)"></td>
+          <td><select onchange="updMaster('${m.id}','defaultRole',this.value)">
+            ${ROLES_DEF.map(r=>`<option value="${r.k}" ${m.defaultRole===r.k?'selected':''}>${r.l}</option>`).join('')}
+          </select></td>
+          <td><button class="m-del-row" onclick="delMasterRow('${m.id}')">🗑</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+
+    <div style="font-size:15px;font-weight:900;margin:24px 0 10px;">🏷 役職の管理</div>
+    <div style="font-size:11px;color:var(--sub);margin-bottom:8px;">インターン・派遣などを追加できます。上から順に「役職の高い順」として扱われます（スライドやツリーの並び順）。</div>
+    <table class="master-table" style="max-width:560px;">
+      <thead><tr><th>表示名</th><th>バッジ色</th><th>並び順</th><th></th></tr></thead>
+      <tbody>
+        ${ROLES_DEF.map((r,i)=>`<tr>
+          <td><input value="${r.l}" onchange="updRoleLabel('${r.k}',this.value)"></td>
+          <td><input type="color" value="#${ROLE_COLORS[r.k]||'94A3B8'}" onchange="updRoleColor('${r.k}',this.value)" style="width:44px;height:26px;padding:1px;border:1px solid var(--bor);border-radius:4px;cursor:pointer;"></td>
+          <td style="white-space:nowrap;">
+            <button class="cr" onclick="moveRole(${i},-1)" ${i===0?'disabled style=opacity:.3':''}>▲</button>
+            <button class="cr" onclick="moveRole(${i},1)" ${i===ROLES_DEF.length-1?'disabled style=opacity:.3':''}>▼</button>
+          </td>
+          <td><button class="m-del-row" onclick="delRole('${r.k}')" ${ROLES_DEF.length<=1?'disabled style=opacity:.3':''}>🗑</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="display:flex;gap:6px;margin-top:8px;max-width:560px;">
+      <input id="newRoleLabel" placeholder="新しい役職名（例: インターン）" style="flex:1;padding:6px 9px;border:1.5px solid var(--bor);border-radius:6px;font-size:12px;font-family:inherit;" onkeydown="if(event.key==='Enter')addRole()">
+      <button class="btn btn-p" onclick="addRole()">＋ 役職を追加</button>
+    </div>
+
+    <div style="font-size:15px;font-weight:900;margin:24px 0 10px;">🔖 変更区分の管理</div>
+    <div style="font-size:11px;color:var(--sub);margin-bottom:8px;">発令案に出す区分です（入社・異動のほか、出向・昇格などを追加できます）。</div>
+    <table class="master-table" style="max-width:480px;">
+      <thead><tr><th>表示名</th><th>色</th><th></th></tr></thead>
+      <tbody>
+        ${CH_DEF.map(c=>`<tr>
+          <td><input value="${c.l}" onchange="updChLabel('${c.k}',this.value)"></td>
+          <td><input type="color" value="#${CH_COLORS[c.k]||'2563EB'}" onchange="updChColor('${c.k}',this.value)" style="width:44px;height:26px;padding:1px;border:1px solid var(--bor);border-radius:4px;cursor:pointer;"></td>
+          <td><button class="m-del-row" onclick="delCh('${c.k}')">🗑</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="display:flex;gap:6px;margin-top:8px;max-width:480px;">
+      <input id="newChLabel" placeholder="新しい区分名（例: 出向）" style="flex:1;padding:6px 9px;border:1.5px solid var(--bor);border-radius:6px;font-size:12px;font-family:inherit;" onkeydown="if(event.key==='Enter')addCh()">
+      <button class="btn btn-p" onclick="addCh()">＋ 区分を追加</button>
+    </div>`;
+}
+// 役職管理
+function updRoleLabel(k,v){const r=ROLES_DEF.find(x=>x.k===k);if(r)r.l=v;syncDefsToD();autosave();}
+function updRoleColor(k,v){ROLE_COLORS[k]=v.replace('#','').toUpperCase();syncDefsToD();autosave();renderAll();}
+function moveRole(i,dir){
+  const j=i+dir;if(j<0||j>=ROLES_DEF.length)return;
+  [ROLES_DEF[i],ROLES_DEF[j]]=[ROLES_DEF[j],ROLES_DEF[i]];
+  ROLE_ORDER=ROLES_DEF.map(r=>r.k);
+  syncDefsToD();renderMaster();autosave();
+}
+function delRole(k){
+  if(ROLES_DEF.length<=1)return;
+  if(!confirm('この役職を削除しますか？（既存メンバーの役職からは外れます）'))return;
+  ROLES_DEF=ROLES_DEF.filter(x=>x.k!==k);
+  ROLE_ORDER=ROLES_DEF.map(r=>r.k);delete ROLE_COLORS[k];
+  syncDefsToD();renderMaster();autosave();
+}
+function addRole(){
+  const inp=document.getElementById('newRoleLabel');const label=inp.value.trim();if(!label)return;
+  const k='r'+uid();
+  ROLES_DEF.push({k,l:label});ROLE_ORDER.push(k);ROLE_COLORS[k]='94A3B8';
+  syncDefsToD();renderMaster();autosave();toast('役職「'+label+'」を追加しました');
+}
+// 変更区分管理
+function updChLabel(k,v){const c=CH_DEF.find(x=>x.k===k);if(c)c.l=v;syncDefsToD();autosave();}
+function updChColor(k,v){CH_COLORS[k]=v.replace('#','').toUpperCase();syncDefsToD();autosave();renderAll();}
+function delCh(k){
+  if(!confirm('この変更区分を削除しますか？'))return;
+  CH_DEF=CH_DEF.filter(x=>x.k!==k);delete CH_COLORS[k];
+  syncDefsToD();renderMaster();autosave();
+}
+function addCh(){
+  const inp=document.getElementById('newChLabel');const label=inp.value.trim();if(!label)return;
+  const k='c'+uid();
+  CH_DEF.push({k,l:label});CH_COLORS[k]='9333EA';
+  syncDefsToD();renderMaster();autosave();toast('変更区分「'+label+'」を追加しました');
+}
+function updMaster(id,field,val){const m=D.master.find(x=>x.id===id);if(m)m[field]=val;}
+function delMasterRow(id){D.master=D.master.filter(x=>x.id!==id);renderMaster();}
+function addMasterRow(){
+  D.master.push({id:uid(),name:'',dept:'',defaultRole:'member'});
+  masterFilter='';renderMaster();
+  setTimeout(()=>{const rows=document.querySelectorAll('.master-table tbody tr');if(rows.length)rows[rows.length-1].querySelector('input')?.focus();},50);
+}
+
+// ── EXPORT/IMPORT ──
+function exportD(){
+  syncDToArchive();
+  const payload = { __archives: ARCHIVES, __cur: curArchive };
+  const b=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=`natee-org-${new Date().toISOString().slice(0,10)}.json`;a.click();
+  toast('💾 全'+ARCHIVES.length+'ヶ月分を保存しました');
+}
+function loadF(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{try{
+    const parsed=JSON.parse(ev.target.result);
+    if(parsed.__archives){
+      // 新形式（複数月）
+      ARCHIVES = parsed.__archives;
+      curArchive = parsed.__cur || 0;
+      loadArchiveToD(curArchive);
+    } else {
+      // 旧形式（単一データ）→ 1ヶ月として取り込み
+      D = parsed;
+      initArchives();
+    }
+    aG = D.groups[0]?.id || '';
+    slideIdx = 0;
+    renderArchiveBar();
+    renderAll();
+    autosave();
+    const labels = ARCHIVES.map(a=>a.label).join('・');
+    toast('📂 読込完了：'+labels);
+  } catch(err){toast('❌ ファイル形式エラー: '+err.message);}};
+  r.readAsText(f);e.target.value='';
+}
+
+// ── ツリー画像DL ──
+function downloadTreeImage(){
+  const target = document.getElementById('treeCapture') || document.getElementById('treePanel');
+  const btn = document.getElementById('dlTreeBtn');
+  if(btn) btn.style.display='none';
+  html2canvas(target, {
+    backgroundColor: '#f2f1ed',
+    scale: 2,
+    useCORS: true,
+    scrollX: 0,
+    scrollY: 0,
+    width: target.scrollWidth,
+    height: target.scrollHeight,
+    windowWidth: target.scrollWidth + 200,
+  }).then(canvas => {
+    if(btn) btn.style.display='';
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'natee-org-tree-' + new Date().toISOString().slice(0,10) + '.png';
+    a.click();
+    toast('🖼 ツリー画像をダウンロードしました');
+  }).catch(e => {
+    if(btn) btn.style.display='';
+    toast('❌ 画像DLエラー: ' + e.message);
+  });
+}
+
+// ── PW認証 ──
+(function(){
+  const HASH = '7f6e1f15a7b3c2d4e5f6a7b8c9d0e1f2'; // Natee1101! のハッシュ代わり
+  const KEY = 'natee_auth_ok';
+  const PW = 'Natee1101!';
+  if(sessionStorage.getItem(KEY)==='1') return;
+  document.body.style.display='none';
+  const overlay = document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:#f2f1ed;display:flex;align-items:center;justify-content:center;z-index:9999;font-family:Noto Sans JP,sans-serif;';
+  overlay.innerHTML=`
+    <div style="background:#fff;border-radius:16px;padding:48px 40px;width:360px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.1);">
+      <div style="font-size:28px;font-weight:900;margin-bottom:6px;">Natee <span style="color:#e8521a;">組織図</span></div>
+      <div style="font-size:13px;color:#7a746d;margin-bottom:28px;">SNSマーケティング事業本部</div>
+      <input id="pwInput" type="password" placeholder="パスワードを入力"
+        style="width:100%;padding:12px;border:1.5px solid #e2dfd7;border-radius:8px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;text-align:center;"
+        onkeydown="if(event.key==='Enter')document.getElementById('pwSubmit').click()">
+      <button id="pwSubmit" style="width:100%;padding:13px;background:#e8521a;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">
+        🔐 入室する
+      </button>
+      <div id="pwErr" style="color:#b91c1c;font-size:12px;margin-top:10px;display:none;">パスワードが違います</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.style.display='';
+  document.getElementById('pwSubmit').addEventListener('click', ()=>{
+    const val = document.getElementById('pwInput').value;
+    if(val === PW){
+      sessionStorage.setItem(KEY,'1');
+      overlay.remove();
+    } else {
+      document.getElementById('pwErr').style.display='block';
+      document.getElementById('pwInput').value='';
+      document.getElementById('pwInput').focus();
+    }
+  });
+  setTimeout(()=>document.getElementById('pwInput')?.focus(), 100);
+})();
+
+function renderAll(){renderSidebar();renderEditor();autosave();}
+// 起動: localStorageに保存があれば復元、なければ埋め込みデータで初期化
+initArchives();          // まず埋め込みデータで1ヶ月分を用意
+restoreFromLS();         // 保存済みがあれば上書き復元
+loadDefsFromD();         // 役職・変更区分のカスタム定義を反映
+autosaveReady = true;    // ここから自動保存を有効化（誤上書き防止）
+renderArchiveBar();
+renderAll();
+</script>
+</body>
+</html>
